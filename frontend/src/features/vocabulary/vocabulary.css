@@ -1,0 +1,77 @@
+    .page-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; margin: 8px 0 24px; }
+    .page-heading h1 { margin: 0; font-family: "Newsreader", serif; font-size: clamp(39px, 5vw, 58px); line-height: 1; letter-spacing: -1.8px; }
+    .page-heading p { margin: 9px 0 0; color: var(--muted); font-size: 13px; }
+    .search-box { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0 12px; min-width: 250px; height: 43px; }
+    .search-box input { border: 0; outline: 0; background: transparent; color: var(--ink); width: 100%; }
+
+    .review-guide-strip {
+      display: grid;
+      grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+      gap: 10px;
+      margin: -8px 0 18px;
+    }
+    .review-guide-strip div {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      padding: 12px 14px;
+      box-shadow: var(--shadow-soft);
+    }
+    .review-guide-strip strong { display: block; font-size: 12px; margin-bottom: 4px; }
+    .review-guide-strip span { display: block; color: var(--muted); font-size: 11px; font-weight: 700; line-height: 1.45; }
+
+    .flashcard-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+    .word-card {
+      background: var(--surface);
+      cursor: pointer;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 17px;
+      box-shadow: var(--shadow-sm);
+      transition: .2s ease;
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .word-card.is-due { border-color: rgba(31, 122, 82, .38); box-shadow: 0 14px 34px rgba(31, 122, 82, .13); }
+    .word-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+    .word-card::after { content: ""; position: absolute; width: 90px; height: 90px; border-radius: 50%; background: var(--green-soft); right: -40px; top: -35px; opacity: .8; }
+    .card-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; position: relative; z-index: 1; }
+    .card-icon { width: 58px; height: 58px; border-radius: 17px; background: #edf7f1; display: grid; place-items: center; }
+    .card-icon img { width: 39px; height: 39px; }
+    .card-menu { border: 0; background: var(--surface-2); width: 30px; height: 30px; border-radius: 10px; cursor: pointer; }
+    .card-word { font-size: 24px; font-weight: 800; letter-spacing: -.7px; margin-top: 14px; }
+    .card-meaning { color: var(--green); font-size: 14px; font-weight: 800; margin-top: 2px; }
+    .card-sentence { margin: 13px 0 12px; color: var(--muted); font-family: "Newsreader", serif; font-size: 14px; line-height: 1.45; }
+    .card-review-panel {
+      display: grid;
+      grid-template-columns: 1fr 88px;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface-2);
+      padding: 10px;
+      margin: 0 0 12px;
+    }
+    .card-review-panel b { display: block; font-size: 12px; line-height: 1.1; }
+    .card-review-panel small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; font-weight: 700; line-height: 1.25; }
+    .card-review-panel.due { background: #edf7f1; border-color: rgba(31, 122, 82, .24); }
+    .card-review-panel.due b { color: var(--green); }
+    .card-review-panel.soon b { color: #9f6d1a; }
+    .mastery-meter { height: 7px; border-radius: 999px; background: rgba(28, 35, 31, .1); overflow: hidden; }
+    .mastery-meter span { display: block; height: 100%; border-radius: inherit; background: var(--green); min-width: 7px; transition: width .2s ease; }
+    .card-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .level-pill { padding: 5px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); font-size: 10px; font-weight: 800; }
+    .review-count { color: var(--muted); font-size: 10px; font-weight: 800; white-space: nowrap; }
+    .review-mini-btn { border: 0; background: var(--green); color: white; padding: 7px 11px; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer; }
+    .empty-state { grid-column: 1 / -1; background: var(--surface); border: 1px dashed var(--line); border-radius: 26px; padding: 60px 20px; text-align: center; color: var(--muted); }
+    .empty-state .big { font-size: 48px; margin-bottom: 10px; }
+
+    @media (max-width: 760px) {
+      .review-guide-strip { grid-template-columns: 1fr; }
+      .page-heading { align-items: stretch; flex-direction: column; }
+      .search-box { min-width: 0; }
+    }

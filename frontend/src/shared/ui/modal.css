@@ -1,0 +1,85 @@
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(12, 20, 15, .5);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      width: min(710px, 100%);
+      max-height: min(760px, calc(100vh - 30px));
+      overflow: auto;
+      background: var(--surface);
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      box-shadow: 0 30px 100px rgba(0,0,0,.28);
+      padding: 23px;
+      animation: pop .25s ease;
+    }
+    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
+    .modal-head h2 { margin: 0; font-family: "Newsreader", serif; font-size: 37px; letter-spacing: -1px; }
+    .modal-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .modal-close { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; }
+    .tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface-2); padding: 5px; border-radius: 14px; margin: 21px 0 17px; }
+    .tab-btn { border: 0; background: transparent; padding: 10px; border-radius: 10px; cursor: pointer; color: var(--muted); font-weight: 800; font-size: 11px; }
+    .tab-btn.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .field { display: grid; gap: 7px; margin-bottom: 12px; }
+    .field label { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); font-weight: 800; }
+    .field input, .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface-2);
+      color: var(--ink);
+      outline: 0;
+      padding: 13px 14px;
+    }
+    .field textarea { min-height: 220px; resize: vertical; line-height: 1.55; }
+    .field input:focus, .field textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 13%, transparent); }
+    .dropzone { border: 1.5px dashed color-mix(in srgb, var(--green) 40%, var(--line)); background: var(--green-soft); border-radius: 20px; min-height: 220px; display: grid; place-items: center; text-align: center; padding: 25px; cursor: pointer; }
+    .dropzone.drag { border-color: var(--green); transform: scale(.995); }
+    .dropzone .upload-icon { font-size: 42px; }
+    .dropzone b { display: block; margin: 8px 0 4px; }
+    .dropzone small { color: var(--muted); }
+    .url-note { color: var(--muted); font-size: 11px; line-height: 1.5; padding: 11px 12px; background: var(--surface-2); border-radius: 12px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 17px; }
+    .modal-actions button { border: 0; border-radius: 13px; height: 43px; padding: 0 17px; cursor: pointer; font-weight: 800; }
+    .cancel-btn { background: var(--surface-2); }
+    .import-btn { background: var(--green); color: white; min-width: 130px; }
+
+
+    .edit-card-modal { width: min(860px, 100%); }
+    .edit-card-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 22px; margin-top: 20px; }
+    .edit-art-panel { background: var(--surface-2); border: 1px solid var(--line); border-radius: 22px; padding: 15px; align-self: start; }
+    .edit-art-preview {
+      aspect-ratio: 1; width: 100%; border-radius: 19px; background: var(--surface);
+      border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden;
+      position: relative;
+    }
+    .edit-art-preview::after { content: attr(data-label); position: absolute; left: 10px; bottom: 9px; font-size: 9px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); background: color-mix(in srgb, var(--surface) 88%, transparent); padding: 5px 7px; border-radius: 8px; backdrop-filter: blur(5px); }
+    .edit-art-preview img { width: 78%; height: 78%; object-fit: contain; }
+    .edit-art-preview img.custom-image { width: 100%; height: 100%; object-fit: cover; }
+    .edit-image-actions { display: grid; gap: 8px; margin-top: 11px; }
+    .edit-image-btn { height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 800; cursor: pointer; }
+    .edit-image-btn.primary { background: var(--green); color: white; border-color: var(--green); }
+    .edit-image-note { color: var(--muted); font-size: 10px; line-height: 1.45; margin: 10px 2px 0; }
+    .edit-icon-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 15px 0 7px; font-size: 10px; color: var(--muted); font-weight: 900; text-transform: uppercase; letter-spacing: .75px; }
+    .edit-icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+    .edit-icon-option { aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; }
+    .edit-icon-option.active { border: 2px solid var(--green); background: var(--green-soft); }
+    .edit-icon-option img { width: 27px; height: 27px; object-fit: contain; }
+    .edit-form { min-width: 0; }
+    .edit-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+    .edit-form .field textarea { min-height: 88px; }
+    .edit-form .field textarea.tall { min-height: 112px; }
+    .edit-delete-btn { margin-right: auto; background: #fff0ee !important; color: #b94c44; border: 1px solid #f2c9c5 !important; }
+    .edit-save-btn { background: var(--green) !important; color: white; min-width: 140px; }
+    .edit-card-tip { margin: 8px 0 0; color: var(--muted); font-size: 10px; }
+
+
+

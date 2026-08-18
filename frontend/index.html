@@ -1,0 +1,737 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0e1726" />
+  <title>Wordinary</title>
+  <link rel="stylesheet" href="/src/styles/main.css?v=reader-highlight-1" />
+
+</head>
+<body>
+  <section class="auth-screen" id="authScreen" aria-label="Wordinary authentication">
+    <div class="auth-stage">
+      <div class="auth-copy">
+        <div class="brand">
+          <div class="brand-mark wordinary-mark" aria-hidden="true"><span>W</span></div>
+          <div class="brand-copy">Wordinary<small>ordinary words, made yours</small></div>
+        </div>
+        <h1>Keep every word connected to where you found it.</h1>
+        <p>Sign in to continue your reading library, saved vocabulary, and review rhythm from one account.</p>
+      </div>
+
+      <div class="auth-preview" aria-hidden="true">
+        <div class="auth-preview-head">
+          <span>Today</span>
+          <strong>Reading room</strong>
+        </div>
+        <div class="auth-preview-article">
+          <span>Aa</span>
+          <div><b>Urban farms after rain</b><small>Article • 42% read</small></div>
+        </div>
+        <div class="auth-preview-row"><span>curiosity</span><b>saved</b></div>
+        <div class="auth-preview-row amber"><span>continue</span><b>review</b></div>
+      </div>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-panel" id="authLoginPanel">
+        <h2>Log in</h2>
+        <p>Use your Wordinary account to continue.</p>
+        <form class="auth-form" id="authLoginForm">
+          <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+          <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
+          <button class="auth-submit" type="submit">Log in</button>
+        </form>
+        <div class="auth-switch">New here? <button type="button" id="showSignup">Create an account</button></div>
+      </div>
+
+      <div class="auth-panel is-hidden" id="authSignupPanel">
+        <h2>Create account</h2>
+        <p>Create an account and start syncing your reading progress.</p>
+        <form class="auth-form" id="authSignupForm">
+          <label>Name<input name="displayName" type="text" autocomplete="name" required minlength="1" maxlength="80" /></label>
+          <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+          <label>Password<input name="password" type="password" autocomplete="new-password" required minlength="8" /></label>
+          <button class="auth-submit" type="submit">Create account</button>
+        </form>
+        <div class="auth-switch">Already have an account? <button type="button" id="showLogin">Log in</button></div>
+      </div>
+      <div class="auth-status" id="authStatus" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <div class="app-shell auth-locked" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-edge-toggle" id="sidebarCollapseToggle" type="button" title="Collapse navigation" aria-label="Collapse navigation">
+        <span id="sidebarCollapseIcon" aria-hidden="true">‹</span>
+      </button>
+      <div class="brand">
+        <div class="brand-mark wordinary-mark" aria-hidden="true"><span>W</span></div>
+        <div class="brand-copy">Wordinary<small>ordinary words, made yours</small></div>
+      </div>
+
+      <div class="nav-label">Home</div>
+      <nav class="nav-list">
+        <button class="nav-btn active" data-view="isleView"><span class="nav-icon">⌂</span><span class="nav-text">Your Isle</span><span class="nav-count" id="navIsleLevel">0</span></button>
+      </nav>
+
+      <div class="nav-label nav-label-spaced">Your content</div>
+      <nav class="nav-list">
+        <button class="nav-btn" data-view="libraryView"><span class="nav-icon">▤</span><span class="nav-text">Library</span><span class="nav-count" id="navArticleCount">0</span></button>
+        <button class="nav-btn" data-view="cardsView"><span class="nav-icon">◫</span><span class="nav-text">Vocabulary</span><span class="nav-count" id="navCardCount">0</span></button>
+        <button class="nav-btn" data-view="reviewView"><span class="nav-icon">◎</span><span class="nav-text">Practice</span><span class="nav-count" id="navDueCount">0</span></button>
+      </nav>
+
+      <div class="nav-label nav-label-spaced">Learning spaces</div>
+      <nav class="nav-list">
+        <button class="nav-btn" data-view="readerView"><span class="nav-icon">✦</span><span class="nav-text">Read</span></button>
+        <button class="nav-btn" data-view="pdfView"><span class="nav-icon">▧</span><span class="nav-text">PDF</span></button>
+        <button class="nav-btn" data-view="videoView"><span class="nav-icon">▶</span><span class="nav-text">Video</span></button>
+      </nav>
+
+      <div class="nav-label nav-label-spaced">System</div>
+      <nav class="nav-list">
+        <button class="nav-btn" data-view="settingsView"><span class="nav-icon">⚙</span><span class="nav-text">Settings</span></button>
+      </nav>
+
+      <div class="sidebar-card">
+        <b>🎯 Today&apos;s goal</b>
+        <p>Save or review 8 words to keep your learning streak.</p>
+        <div class="goal-row"><span>Progress</span><strong id="goalText">0/8</strong></div>
+        <div class="goal-track"><div class="goal-fill" id="goalFill"></div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="round-btn mobile-menu" id="mobileMenuBtn" aria-label="Open navigation">☰</button>
+          <div class="crumb">Wordinary / <strong id="crumbName">Library</strong></div>
+        </div>
+        <div class="top-actions">
+          <div class="streak-chip"><span>🔥</span><span id="streakCount">3 days</span></div>
+          <div class="xp-chip"><span>✦</span><span id="xpCount">120 XP</span></div>
+          <button class="language-toggle" id="languageToggle" title="Change language"><span aria-hidden="true">文</span><strong id="languageCode">EN</strong></button>
+          <button class="round-btn" id="themeToggle" title="Toggle appearance">☾</button>
+          <div class="user-menu">
+            <div class="user-chip"><strong id="currentUserName">Not signed in</strong><small id="currentUserEmail"></small></div>
+            <button class="logout-btn" id="logoutButton" type="button">Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="view active" id="isleView">
+        <div class="page-heading isle-heading">
+          <div>
+            <div class="eyebrow">Your learning world</div>
+            <h1>Your Isle</h1>
+            <p>Every saved word and practice round grows this place. XP unlocks new parts of the island.</p>
+          </div>
+          <button class="tool-btn primary" data-view="readerView"><span>＋</span><span>Learn words</span></button>
+        </div>
+
+        <div class="isle-layout">
+          <section class="isle-stage" aria-label="Your Isle progress">
+            <div class="isle-water-tiles" aria-hidden="true"></div>
+            <div class="isle-map" aria-hidden="true">
+              <img class="isle-piece isle-scene-layer isle-layer-1" data-unlock-level="1" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
+              <img class="isle-piece isle-scene-layer isle-layer-2" data-unlock-level="2" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
+              <img class="isle-piece isle-scene-layer isle-layer-3" data-unlock-level="3" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
+              <img class="isle-piece isle-scene-layer isle-layer-4" data-unlock-level="4" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
+              <img class="isle-piece isle-scene-layer isle-layer-5" data-unlock-level="5" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
+              <img class="isle-piece isle-scene-layer isle-layer-6" data-unlock-level="6" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
+              <img class="isle-piece isle-scene-layer isle-layer-7" data-unlock-level="7" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
+              <img class="isle-piece isle-asset isle-wildlife" data-unlock-level="6" src="/public/assets/isle/cozy-wildlife.png" alt="" />
+            </div>
+            <div class="isle-empty-note" id="isleEmptyNote">Save your first words to make the island appear.</div>
+          </section>
+
+          <aside class="isle-panel">
+            <div class="isle-level-row">
+              <div><h2 id="isleLevel">Level 0</h2><small id="isleNextUnlock">Next: Lagoon</small></div>
+              <strong id="isleXp">0 XP</strong>
+            </div>
+            <div class="isle-progress-track"><span id="isleProgressFill"></span></div>
+            <div class="goal-row"><span>Next unlock</span><strong id="isleProgressLabel">0/100 XP</strong></div>
+            <div class="isle-stat-grid">
+              <div class="isle-stat"><strong id="isleDaily">0/8</strong><span>today</span></div>
+              <div class="isle-stat"><strong id="isleStreak">0 days</strong><span>streak</span></div>
+              <div class="isle-stat"><strong id="isleDailyXp">0 XP</strong><span>today XP</span></div>
+            </div>
+            <div class="goal-row"><span>Unlocked pieces</span><strong id="isleUnlockedCount">0</strong></div>
+            <div class="isle-unlocks" id="isleUnlockList"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="readerView">
+        <div class="reader-layout">
+          <article class="reader-card" id="readerCard">
+            <div class="reader-toolbar">
+              <div class="toolbar-group">
+                <button class="tool-btn primary" id="openImport"><span>＋</span><span>New reading</span></button>
+                <button class="tool-btn ghost" id="editCurrentArticle"><span>✎</span><span>Edit</span></button>
+                <button class="tool-btn ghost" id="loadSample"><span>↻</span><span>Sample article</span></button>
+              </div>
+              <div class="toolbar-group">
+                <div class="font-stepper" title="Font size"><button id="fontDown">A−</button><span id="fontSizeLabel">21px</span><button id="fontUp">A+</button></div>
+                <button class="tool-btn ghost" id="focusToggle"><span>◫</span><span>Focus</span></button>
+              </div>
+            </div>
+            <div class="reading-progress"><span id="readingProgress"></span></div>
+
+            <div class="article-wrap" id="articleWrap">
+              <div class="article-kicker" id="articleKicker">Learning science • 6 min read</div>
+              <h1 class="article-title" id="articleTitle">Why curiosity makes new words stick</h1>
+              <div class="article-meta">
+                <span id="articleAuthor">Wordinary Journal</span><span class="dot"></span>
+                <span id="articleDate">August 3, 2026</span><span class="dot"></span>
+                <span id="articleWordCount">486 words</span>
+              </div>
+              <div class="reading-hint"><span>✨</span><span>Highlight any word that makes you pause. Wordinary keeps the sentence, translates it in context, and turns that moment into a memory card.</span></div>
+              <div id="articleBody"></div>
+            </div>
+          </article>
+
+          <aside class="insight-rail" id="readerInsightRail">
+            <button class="reader-rail-edge-toggle" id="readerRailToggle" type="button" title="Collapse right sidebar" aria-label="Collapse right sidebar">
+              <span id="readerRailToggleIcon" aria-hidden="true">›</span>
+            </button>
+            <div class="insight-rail-content">
+              <section class="panel reader-insight-panel">
+                <div class="reader-insight-section">
+                  <div class="panel-title"><h3>Today’s reading</h3><small>live</small></div>
+                  <div class="stat-grid">
+                    <div class="mini-stat"><strong id="sessionWords">0</strong><span>saved words</span></div>
+                    <div class="mini-stat"><strong id="readingPercent">0%</strong><span>read</span></div>
+                    <div class="mini-stat"><strong id="articleLevel">B1</strong><span>estimated</span></div>
+                    <div class="mini-stat"><strong id="sessionXp">0</strong><span>XP earned</span></div>
+                  </div>
+                </div>
+
+                <div class="reader-insight-divider" aria-hidden="true"></div>
+
+                <div class="reader-insight-section reader-highlight-section">
+                  <div class="panel-title">
+                    <h3>Words in this article</h3>
+                  </div>
+                  <div class="reader-word-list" id="readerArticleWordList"></div>
+                </div>
+              </section>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+
+      <section class="view" id="settingsView">
+        <div class="page-heading settings-heading">
+          <div>
+            <div class="eyebrow">Wordinary system</div>
+            <h1>Settings</h1>
+            <p>Manage your account, preferences, and learning services.</p>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <section class="settings-card profile-settings-card">
+            <div class="settings-card-head">
+              <div>
+                <span class="settings-icon profile-icon" aria-hidden="true">U</span>
+                <div>
+                  <h2>User profile</h2>
+                  <p>Your account details and sync status.</p>
+                </div>
+              </div>
+              <span class="settings-badge" id="settingsProfileStatus">active</span>
+            </div>
+            <div class="profile-summary">
+              <div class="profile-avatar" id="settingsProfileInitial">W</div>
+              <div>
+                <h3 id="settingsProfileName">Not signed in</h3>
+                <p id="settingsProfileEmail">-</p>
+              </div>
+            </div>
+            <div class="profile-list">
+              <div class="profile-row"><span>User ID</span><strong id="settingsProfileId">-</strong></div>
+              <div class="profile-row"><span>Created</span><strong id="settingsProfileCreated">-</strong></div>
+              <div class="profile-row"><span>Updated</span><strong id="settingsProfileUpdated">-</strong></div>
+            </div>
+          </section>
+
+          <section class="settings-card api-settings-card">
+            <div class="settings-card-head">
+              <div>
+                <span class="settings-icon" aria-hidden="true">⌘</span>
+                <div>
+                  <h2>Learning Services</h2>
+                  <p>Status for translation, definitions, imagery, article import, and pronunciation.</p>
+                </div>
+              </div>
+              <span class="settings-badge">MVP</span>
+            </div>
+            <div class="api-list settings-api-list">
+              <div class="api-row"><span>Google Translate → MyMemory</span><span class="status">fallback</span></div>
+              <div class="api-row"><span>Free Dictionary</span><span class="status">ready</span></div>
+              <div class="api-row"><span>Iconify Icons</span><span class="status">ready</span></div>
+              <div class="api-row"><span>Jina URL Reader</span><span class="status">ready</span></div>
+              <div class="api-row"><span>Browser Speech</span><span class="status">local</span></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+
+      <section class="view" id="libraryView">
+        <div id="libraryOverview">
+          <div class="page-heading library-heading">
+            <div>
+              <div class="eyebrow">All your learning, one place</div>
+              <h1>Library</h1>
+              <p>Articles, PDFs, and videos live in one place. Choose content and Wordinary will open the right learning space.</p>
+            </div>
+            <button class="tool-btn primary library-current-btn" id="addContentFromLibrary"><span>＋</span><span>Add content</span></button>
+          </div>
+
+          <section class="continue-learning-section" id="continueLearningSection">
+            <div class="section-heading-inline">
+              <div><span class="eyebrow">Pick up where you left off</span><h2>Continue learning</h2></div>
+              <small>Up to 3 recent items</small>
+            </div>
+            <div class="continue-learning-grid" id="continueLearningGrid"></div>
+          </section>
+
+          <div class="library-insights">
+            <div class="library-insight-card accent-one"><span class="insight-symbol">▤</span><div><strong id="libraryArticleStat">0</strong><small>items in library</small></div></div>
+            <div class="library-insight-card accent-two"><span class="insight-symbol">✦</span><div><strong id="libraryWordStat">0</strong><small>saved vocabulary</small></div></div>
+            <div class="library-insight-card accent-three"><span class="insight-symbol">↻</span><div><strong id="libraryReturnStat">0</strong><small>items in progress</small></div></div>
+          </div>
+
+          <div class="library-filter-tabs" id="libraryFilterTabs" role="tablist" aria-label="Filter content type">
+            <button class="library-filter-btn active" data-library-filter="all">All <span id="libraryFilterAllCount">0</span></button>
+            <button class="library-filter-btn" data-library-filter="article">Article <span id="libraryFilterArticleCount">0</span></button>
+            <button class="library-filter-btn" data-library-filter="pdf">PDF <span id="libraryFilterPdfCount">0</span></button>
+            <button class="library-filter-btn" data-library-filter="video">Video <span id="libraryFilterVideoCount">0</span></button>
+          </div>
+
+          <div class="library-toolbar">
+            <label class="library-search"><span>⌕</span><input id="librarySearch" placeholder="Search by title, content type, or source..." /></label>
+            <select id="librarySort" class="library-sort" aria-label="Sort library">
+              <option value="recent">Recently opened</option>
+              <option value="added">Recently added</option>
+              <option value="saved">Most saved words</option>
+              <option value="progress">In progress</option>
+              <option value="title">Title A–Z</option>
+            </select>
+          </div>
+          <div class="content-library-grid" id="articleLibraryGrid"></div>
+        </div>
+      </section>
+
+      <section class="view" id="cardsView">
+        <div class="page-heading">
+          <div><h1>Your vocabulary</h1><p>More than meaning: every card keeps the place where you truly encountered the word.</p></div>
+          <div class="search-box"><span>⌕</span><input id="cardSearch" placeholder="Search words or meanings..." /></div>
+        </div>
+        <div class="review-guide-strip">
+          <div>
+            <strong>Mastery 0-5</strong>
+            <span>Learned raises mastery by 1. Not learned lowers it by 1.</span>
+          </div>
+          <div>
+            <strong>Due schedule</strong>
+            <span>0 = now, 1 = 1d, 2 = 2d, 3 = 5d, 4 = 12d, 5 = 30d. Not learned returns in 5m.</span>
+          </div>
+        </div>
+        <div class="flashcard-grid" id="flashcardGrid"></div>
+      </section>
+
+      <section class="view" id="reviewView">
+        <div class="page-heading">
+          <div><h1>Practice</h1><p>Tap a card to flip it. Space flips, 1 = not learned, 2 = learned.</p></div>
+        </div>
+        <div class="practice-mode-tabs" id="practiceModeTabs" role="tablist" aria-label="Practice mode">
+          <button class="practice-mode-btn active" data-practice-mode="due">Due today</button>
+          <button class="practice-mode-btn" data-practice-mode="all">All cards</button>
+          <button class="practice-mode-btn" data-practice-mode="retry">Retry missed</button>
+        </div>
+        <div class="review-guide-strip compact">
+          <div>
+            <strong>How reviews work</strong>
+            <span>New words start due now. Learned increases mastery and delays the next due date; Not learned retries in 5 minutes.</span>
+          </div>
+        </div>
+        <div class="review-shell" id="reviewShell"></div>
+      </section>
+
+
+
+      <section class="view" id="pdfView">
+        <div class="page-heading pdf-heading">
+          <div>
+            <div class="eyebrow">▧ Document immersion</div>
+            <h1>PDF</h1>
+            <p>Preserve the PDF’s layout, images, and typography while adding a selectable text layer for translating and saving words directly on the page.</p>
+          </div>
+          <button class="tool-btn primary" id="pdfOpenAnother"><span>＋</span><span>Open PDF</span></button>
+        </div>
+
+        <section class="pdf-onboarding" id="pdfOnboarding">
+          <div class="pdf-drop-card" id="pdfDropzone">
+            <div class="pdf-drop-icon">PDF</div>
+            <div>
+              <h2 id="pdfOnboardingTitle">Drop a document here</h2>
+              <p id="pdfOnboardingText">The file is processed directly in your browser. The canvas preserves the original page, while a transparent text layer lets you highlight without breaking the layout.</p>
+              <div class="pdf-onboarding-actions">
+                <button class="tool-btn primary" id="pdfChooseFile">Choose PDF file</button>
+                <button class="tool-btn ghost" id="pdfLoadDemo">Open sample PDF</button>
+              </div>
+              <input id="pdfFileInput" type="file" accept="application/pdf,.pdf" hidden />
+            </div>
+          </div>
+          <div class="pdf-feature-grid">
+            <article><span>◫</span><b>Preserve every page</b><small>Images, columns, tables, and fonts render like the original PDF.</small></article>
+            <article><span>⌁</span><b>Selectable layer</b><small>Highlight directly on a text layer aligned with the canvas.</small></article>
+            <article><span>◎</span><b>Local OCR</b><small>For scanned pages, run OCR on the current page without uploading the file.</small></article>
+          </div>
+        </section>
+
+        <section class="pdf-workspace is-hidden" id="pdfWorkspace">
+          <div class="pdf-document-bar">
+            <div class="pdf-file-identity"><span class="pdf-file-icon">PDF</span><div><b id="pdfFileName">document.pdf</b><small id="pdfFileMeta">0 trang</small></div></div>
+            <div class="pdf-engine-state"><span id="pdfEngineDot"></span><span id="pdfEngineStatus">waiting for a document</span></div>
+          </div>
+
+          <div class="pdf-layout" id="pdfLayout">
+            <aside class="pdf-thumbnails-panel">
+              <div class="pdf-rail-title"><b>Pages</b><button id="pdfToggleThumbs" title="Collapse thumbnails">‹</button></div>
+              <div class="pdf-thumbnails" id="pdfThumbnails"></div>
+            </aside>
+
+            <section class="pdf-center">
+              <div class="pdf-toolbar">
+                <div class="pdf-toolbar-group">
+                  <button class="pdf-tool-icon" id="pdfPrevPage" title="Previous page">←</button>
+                  <label class="pdf-page-jump"><input id="pdfPageInput" type="number" min="1" value="1" /><span id="pdfPageTotal">/ 0</span></label>
+                  <button class="pdf-tool-icon" id="pdfNextPage" title="Next page">→</button>
+                </div>
+                <div class="pdf-toolbar-group">
+                  <button class="pdf-tool-icon" id="pdfZoomOut" title="Zoom out">−</button>
+                  <button class="pdf-zoom-label" id="pdfZoomReset" title="Fit width">100%</button>
+                  <button class="pdf-tool-icon" id="pdfZoomIn" title="Zoom in">＋</button>
+                  <button class="pdf-tool-text" id="pdfFitWidth">Fit width</button>
+                </div>
+                <div class="pdf-toolbar-group pdf-toolbar-grow">
+                  <label class="pdf-search"><span>⌕</span><input id="pdfSearchInput" placeholder="Search PDF..." /></label>
+                  <button class="pdf-tool-text accent" id="pdfOcrPage">OCR this page</button>
+                </div>
+              </div>
+
+              <div class="pdf-viewer-viewport" id="pdfViewerViewport">
+                <div class="pdf-loading is-hidden" id="pdfLoading"><span></span><b id="pdfLoadingText">Rendering page…</b></div>
+                <div class="pdf-page-shell" id="pdfPageShell">
+                  <canvas id="pdfCanvas"></canvas>
+                  <div class="pdf-text-layer" id="pdfTextLayer"></div>
+                </div>
+              </div>
+              <div class="pdf-page-footer"><span id="pdfPageStatus">No page loaded</span><span>Tip: highlight 1–8 words to open the translation card</span></div>
+            </section>
+
+            <aside class="pdf-vocab-rail" id="pdfVocabRail">
+              <div class="pdf-vocab-head"><div><span class="eyebrow">Page vocabulary</span><h3>Words saved from this PDF</h3></div><span id="pdfSavedCount">0</span></div>
+              <div class="pdf-active-word is-hidden" id="pdfActiveWordBox">
+                <div><b id="pdfActiveWord">—</b><small id="pdfOccurrenceLabel">0 trang</small></div>
+                <div><button id="pdfPrevOccurrence">↑</button><button id="pdfNextOccurrence">↓</button></div>
+              </div>
+              <div class="pdf-word-list" id="pdfWordList"></div>
+              <div class="pdf-help-card">
+                <b>Images stay images</b>
+                <p>PDF.js renders the entire page onto a canvas. The text layer is only a transparent overlay, so selecting words never removes images or structure.</p>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" id="videoView">
+        <div class="page-heading video-lab-heading">
+          <div>
+            <div class="eyebrow">▶ Immersive listening</div>
+            <h1>Video</h1>
+            <p>Watch a video, follow real-time captions, pause, then highlight text to translate and save it just like in the reader.</p>
+          </div>
+          <button class="tool-btn primary" id="videoAddNew"><span>＋</span><span>Add video</span></button>
+        </div>
+
+        <div class="video-url-bar">
+          <input class="video-url-input" id="videoUrlInput" type="url" placeholder="Paste a YouTube URL or a public MP4/WebM link..." />
+          <button class="video-demo-btn" id="loadVideoDemo">✨ Open demo</button>
+          <button class="video-load-btn" id="loadVideoUrl">Analyze video</button>
+        </div>
+
+        <div class="video-workspace">
+          <section class="video-player-card">
+            <div class="video-card-head">
+              <div class="video-title-wrap"><h3 id="videoTitle">No video yet</h3><p id="videoMeta">Paste a URL or open the demo to start</p></div>
+              <div class="video-status" id="videoStatus"><span class="live-dot"></span><span id="videoStatusText">waiting</span></div>
+            </div>
+            <div class="video-stage" id="videoStage">
+              <div class="video-placeholder" id="videoPlaceholder"><div><div class="big">🎬</div><b>Turn a video into an interactive lesson</b><small>Captions will stay synchronized in the right column. Select a word in a caption to translate it in context and save a flashcard.</small></div></div>
+              <div class="video-embed-notice video-hidden" id="videoEmbedNotice" role="alert">
+                <div class="video-embed-notice-card">
+                  <div class="video-embed-notice-icon">↗</div>
+                  <h4 id="videoEmbedNoticeTitle">YouTube requires Wordinary to run on localhost</h4>
+                  <p id="videoEmbedNoticeText">You opened the app through file://, so the browser cannot send an embed identity to YouTube. Captions can still load, but the video will show Error 153.</p>
+                  <code id="videoEmbedNoticeCommand">py -m http.server 5500</code>
+                  <div class="video-embed-notice-actions">
+                    <button class="primary" type="button" id="openCurrentYouTube">Open on YouTube</button>
+                    <button type="button" id="openYouTubeAtCue">Open at selected caption</button>
+                    <button type="button" id="pickLocalVideo">Use a local video file</button>
+                    <button type="button" id="copyLocalhostCommand">Copy fallback command</button>
+                    <button type="button" id="dismissVideoEmbedNotice">Close notice</button>
+                  </div>
+                </div>
+              </div>
+              <input type="file" id="localVideoFileInput" accept="video/mp4,video/webm,video/ogg,video/*" hidden />
+              <video id="nativeVideo" class="video-hidden" preload="metadata" playsinline></video>
+              <div class="youtube-host video-hidden" id="youtubeHost"><div id="youtubePlayerMount"></div></div>
+              <div class="stage-caption" id="stageCaption"></div>
+            </div>
+            <div class="video-controls">
+              <div class="video-seek-row"><span class="video-time" id="videoCurrent">0:00</span><input class="video-progress" id="videoProgress" type="range" min="0" max="1000" value="0" /><span class="video-time" id="videoDuration">0:00</span></div>
+              <div class="video-control-row">
+                <div class="video-control-group">
+                  <button class="video-icon-btn" id="videoBack" title="Back 5 seconds">−5s</button>
+                  <button class="video-icon-btn primary" id="videoPlayToggle" title="Play / pause">▶</button>
+                  <button class="video-icon-btn" id="videoForward" title="Forward 5 seconds">+5s</button>
+                  <button class="video-icon-btn" id="replayCue" title="Replay current caption">↻ Caption</button>
+                </div>
+                <div class="video-control-group">
+                  <button class="video-icon-btn" id="loopCueToggle" title="Loop current caption">Loop</button>
+                  <select class="video-speed-select" id="videoSpeed" aria-label="Playback speed"><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+                </div>
+              </div>
+            </div>
+            <div class="video-learning-strip">
+              <div class="video-learning-stat"><strong id="captionCount">0</strong><span>caption lines</span></div>
+              <div class="video-learning-stat"><strong id="videoSavedCount">0</strong><span>words saved from video</span></div>
+              <div class="video-learning-stat"><strong id="videoCoverage">0%</strong><span>watched</span></div>
+            </div>
+          </section>
+
+          <aside class="caption-panel">
+            <div class="caption-head">
+              <div class="caption-title-row"><h3>Live transcript</h3><span class="caption-source-pill" id="captionSourcePill">no captions</span></div>
+              <div class="caption-tools">
+                <input class="caption-search" id="captionSearch" placeholder="Search captions..." />
+                <button class="caption-upload-btn" id="captionUploadTrigger">↑ VTT / SRT</button>
+                <input type="file" id="captionFileInput" accept=".vtt,.srt,.json,.txt" hidden />
+              </div>
+              <div class="caption-mode-row">
+                <button class="caption-mode-btn active" id="autoFollowToggle">◎ Auto-scroll</button>
+                <button class="caption-mode-btn" id="translateCueBtn">文 Translate current caption</button>
+                <button class="caption-mode-btn" id="pauseEachCueToggle">⏸ Pause after each caption</button>
+              </div>
+            </div>
+            <div class="caption-list" id="captionList">
+              <div class="caption-empty"><div><div class="big">💬</div><b>Captions will appear here</b><p>Open the demo, upload captions, paste a transcript, or fetch captions automatically.</p><div class="caption-empty-actions"><button class="caption-upload-btn" data-caption-upload>Upload caption</button><button class="caption-upload-btn" data-open-demo>Open demo</button></div></div></div>
+            </div>
+            <div class="caption-footer"><span id="captionHint">Pause the video, then highlight a word in the captions</span><button id="jumpActiveCue">Jump to active caption</button></div>
+          </aside>
+        </div>
+
+        <details class="caption-drawer" id="captionDrawer">
+          <summary><div>Caption Sources</div><span>Use automatic captions, uploads, or pasted transcripts.</span></summary>
+          <div class="caption-drawer-body">
+            <div class="caption-setup-card">
+              <h4>Fetch Captions</h4>
+              <p>Wordinary looks for public captions without downloading the video.</p>
+              <input id="captionServerEndpoint" value="http://localhost:8000/api/v1/captions" aria-label="Caption service endpoint" readonly />
+              <div class="caption-setup-actions"><button id="retryCaptionServer">Fetch again</button><button class="secondary" id="checkCaptionServer">Check service</button></div>
+            </div>
+            <div class="caption-setup-card">
+              <h4>Paste a Transcript</h4>
+              <p>Use WebVTT, SRT, JSON, or one sentence per line. If timestamps are missing, Wordinary distributes the timing automatically.</p>
+              <textarea id="captionPaste" placeholder="00:00:01.000 --> 00:00:04.000\nCuriosity helps us learn..."></textarea>
+              <div class="caption-setup-actions"><button id="usePastedCaptions">Use this transcript</button><button class="secondary" id="clearCaptions">Clear captions</button></div>
+            </div>
+          </div>
+        </details>
+      </section>
+    </main>
+  </div>
+
+  <div class="selection-popup" id="selectionPopup" role="dialog" aria-label="Translate selected word">
+    <div class="popup-head">
+      <div class="popup-main-icon"><img id="popupIcon" alt="Word illustration" /></div>
+      <div>
+        <div class="popup-word" id="popupWord">word</div>
+        <div class="popup-translation" id="popupTranslation"><div class="loading-line" style="width:105px"></div></div>
+      </div>
+      <button class="popup-close" id="popupClose">×</button>
+    </div>
+    <div class="popup-definition" id="popupDefinition"><div class="loading-line" style="width:94%;margin-top:4px"></div></div>
+    <div class="popup-context">
+      <p id="popupSentence"></p>
+      <small id="popupSentenceTranslation"><span class="loading-line" style="display:block;width:85%"></span></small>
+    </div>
+    <div class="icon-picker-label"><span>Memory image</span><span id="iconStatus">searching...</span></div>
+    <div class="icon-options" id="iconOptions"></div>
+    <div class="popup-actions">
+      <button class="speak-btn" id="speakWord" title="Play pronunciation">🔊</button>
+      <button class="save-btn" id="saveWord">＋ Save flashcard</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="addContentModal" aria-hidden="true">
+    <div class="modal add-content-modal" role="dialog" aria-modal="true" aria-labelledby="addContentTitle">
+      <div class="modal-head">
+        <div><h2 id="addContentTitle">Add content</h2><p>Choose a format. Wordinary will take you to the right space to continue.</p></div>
+        <button class="modal-close" id="closeAddContent" aria-label="Close">×</button>
+      </div>
+      <div class="add-content-options">
+        <button class="add-content-option" data-add-content-type="article">
+          <span class="add-content-symbol article">Aa</span>
+          <span><b>Article</b><small>Paste text, import a URL, or upload TXT/MD/HTML.</small></span>
+          <i>→</i>
+        </button>
+        <button class="add-content-option" data-add-content-type="pdf">
+          <span class="add-content-symbol pdf">PDF</span>
+          <span><b>PDF</b><small>Open a PDF and learn directly on its original layout.</small></span>
+          <i>→</i>
+        </button>
+        <button class="add-content-option" data-add-content-type="video">
+          <span class="add-content-symbol video">▶</span>
+          <span><b>Video</b><small>Paste a YouTube URL or a public video link.</small></span>
+          <i>→</i>
+        </button>
+      </div>
+      <div class="add-content-note"><span>◎</span><span>Whether you add it from Library, Read, PDF, or Video, the content appears in the same Library.</span></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="importModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div><h2>Add something you want to read</h2><p>Paste content, upload a file, or import an article from a public URL.</p></div>
+        <button class="modal-close" id="closeImport">×</button>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="pastePanel">Paste content</button>
+        <button class="tab-btn" data-tab="filePanel">Upload file</button>
+        <button class="tab-btn" data-tab="urlPanel">From URL</button>
+      </div>
+
+      <div class="tab-panel active" id="pastePanel">
+        <div class="field"><label>Title</label><input id="pasteTitle" placeholder="Example: The future of urban farming" /></div>
+        <div class="field"><label>English content</label><textarea id="pasteContent" placeholder="Paste the article here..."></textarea></div>
+      </div>
+
+      <div class="tab-panel" id="filePanel">
+        <input type="file" id="fileInput" accept=".txt,.md,.html,.htm" hidden />
+        <div class="dropzone" id="dropzone">
+          <div><div class="upload-icon">📄</div><b>Drop a file here or click to choose</b><small>Supports TXT, Markdown, and HTML • processed directly in your browser</small><div id="fileName" style="margin-top:12px;color:var(--green);font-weight:800;font-size:12px"></div></div>
+        </div>
+        <div class="field" style="margin-top:13px"><label>Custom title</label><input id="fileTitle" placeholder="Leave blank to use the file name" /></div>
+      </div>
+
+      <div class="tab-panel" id="urlPanel">
+        <div class="field"><label>Article URL</label><input id="articleUrl" type="url" placeholder="https://example.com/article" /></div>
+        <div class="url-note">The demo uses Jina Reader to turn public pages into readable text. Pages with paywalls, bot protection, or access restrictions may not import successfully.</div>
+      </div>
+
+      <div class="modal-actions"><button class="cancel-btn" id="cancelImport">Cancel</button><button class="import-btn" id="doImport">Import article</button></div>
+    </div>
+  </div>
+
+
+  <div class="modal-backdrop" id="editArticleModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editArticleTitleLabel">
+      <div class="modal-head">
+        <div><h2 id="editArticleTitleLabel">Edit article</h2><p>Update the title, author, level, or content for the open article.</p></div>
+        <button class="modal-close" id="closeEditArticle" aria-label="Close">×</button>
+      </div>
+      <div class="field"><label>Title</label><input id="editArticleTitle" /></div>
+      <div class="field"><label>Author</label><input id="editArticleAuthor" /></div>
+      <div class="field"><label>Level</label><input id="editArticleLevel" placeholder="A2, B1, B2..." /></div>
+      <div class="field"><label>Content</label><textarea id="editArticleContent"></textarea></div>
+      <div class="modal-actions"><button class="cancel-btn" id="cancelEditArticle">Cancel</button><button class="import-btn" id="saveEditArticle">Save changes</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="editCardModal" aria-hidden="true">
+    <div class="modal edit-card-modal" role="dialog" aria-modal="true" aria-labelledby="editCardTitle">
+      <div class="modal-head">
+        <div><h2 id="editCardTitle">Edit flashcard</h2><p>Change the content, context sentence, or use your own image.</p><div class="edit-card-tip">Tip: uploaded images are resized before they are saved with the flashcard.</div></div>
+        <button class="modal-close" id="closeEditCard" aria-label="Close">×</button>
+      </div>
+
+      <div class="edit-card-layout">
+        <aside class="edit-art-panel">
+          <div class="edit-art-preview" data-label="Memory image"><img id="editImagePreview" alt="Flashcard illustration" /></div>
+          <div class="edit-image-actions">
+            <button class="edit-image-btn primary" id="editUploadTrigger">↑ Upload image</button>
+            <button class="edit-image-btn" id="editUseSuggested">✨ Use suggested icon</button>
+            <input type="file" id="editImageInput" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden />
+          </div>
+          <div class="edit-image-note">PNG, JPG, WebP, GIF, or SVG • up to 8 MB. The image is compressed and saved with the flashcard.</div>
+          <div class="edit-icon-label"><span>Available icons</span><span id="editIconStatus">searching...</span></div>
+          <div class="edit-icon-grid" id="editIconOptions"></div>
+        </aside>
+
+        <div class="edit-form">
+          <div class="edit-form-grid">
+            <div class="field"><label>Word / phrase</label><input id="editWord" autocomplete="off" /></div>
+            <div class="field"><label>Vietnamese meaning</label><input id="editTranslation" autocomplete="off" /></div>
+            <div class="field"><label>Phonetic transcription</label><input id="editPhonetic" placeholder="/ˌkjʊəriˈɒsəti/" /></div>
+            <div class="field"><label>Part of speech</label><input id="editPartOfSpeech" placeholder="noun, verb, adjective..." /></div>
+          </div>
+          <div class="field"><label>Definition / notes</label><textarea id="editDefinition" placeholder="Write a note in the way you remember best..."></textarea></div>
+          <div class="field"><label>Original sentence</label><textarea class="tall" id="editSentence"></textarea></div>
+          <div class="field"><label>Sentence translation</label><textarea id="editSentenceTranslation"></textarea></div>
+          <div class="field"><label>Source article</label><input id="editSourceTitle" /></div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="edit-delete-btn" id="editDeleteCard">Delete flashcard</button>
+        <button class="cancel-btn" id="cancelEditCard">Cancel</button>
+        <button class="edit-save-btn" id="saveEditCard">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <script defer src="/src/core/storage.js"></script>
+  <script defer src="/src/mock/sample-data.js"></script>
+  <script defer src="/src/app/state.js?v=reader-highlight-1"></script>
+  <script defer src="/src/shared/dom.js"></script>
+  <script defer src="/src/infrastructure/api/client.js?v=backend-source-1"></script>
+  <script defer src="/src/infrastructure/api/auth-api.js"></script>
+  <script defer src="/src/infrastructure/api/library-api.js?v=backend-source-1"></script>
+  <script defer src="/src/infrastructure/api/vocabulary-api.js?v=vocab-api-1"></script>
+  <script defer src="/src/infrastructure/api/review-api.js?v=review-api-1"></script>
+  <script defer src="/src/infrastructure/repositories/library-repository.js?v=reader-highlight-1"></script>
+  <script defer src="/src/core/persistence.js?v=reader-highlight-1"></script>
+  <script defer src="/src/shared/ui/ui.js?v=reader-highlight-1"></script>
+  <script defer src="/src/features/isle/isle.js?v=isle-1"></script>
+  <script defer src="/src/features/reader/reader.js?v=reader-highlight-1"></script>
+  <script defer src="/src/features/auth/auth.js?v=backend-source-1"></script>
+  <script defer src="/src/infrastructure/api/learning-services.js"></script>
+  <script defer src="/src/features/vocabulary/vocabulary.js?v=vocab-api-2"></script>
+  <script defer src="/src/features/practice/practice.js?v=vocab-api-1"></script>
+  <script defer src="/src/features/vocabulary/card-editor.js?v=vocab-api-2"></script>
+  <script defer src="/src/features/reader/importer.js?v=backend-source-1"></script>
+  <script defer src="/src/features/library/library.js?v=reader-highlight-1"></script>
+  <script defer src="/src/features/video/video.js?v=backend-source-4"></script>
+  <script defer src="/src/features/video/video-events.js"></script>
+  <script defer src="/src/features/pdf/pdf-state.js"></script>
+  <script defer src="/src/shared/i18n/translations.js?v=backend-source-3"></script>
+  <script defer src="/src/shared/i18n/i18n.js"></script>
+  <script defer src="/src/features/pdf/pdf.js?v=backend-source-2"></script>
+  <script defer src="/src/app/bootstrap.js?v=reader-highlight-1"></script>
+  <script defer src="/src/main.js"></script>
+</body>
+</html>

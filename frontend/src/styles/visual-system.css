@@ -1,0 +1,64 @@
+    /* ───────────── WORDINARY VISUAL SYSTEM ───────────── */
+    :root {
+      --bg: #f3f0ea;
+      --surface: #fffdf9;
+      --surface-2: #f7f3ec;
+      --surface-3: #ece6dc;
+      --ink: #211d29;
+      --muted: #77717f;
+      --line: rgba(33, 29, 41, .11);
+      --green: #6d55f7;
+      --green-dark: #4d35cf;
+      --green-soft: #ece8ff;
+      --lime: #ffe266;
+      --yellow: #ffb657;
+      --red: #ee6f66;
+      --blue: #4f8ee8;
+      --wordinary-coral: #ff8a66;
+      --wordinary-violet: #6d55f7;
+      --wordinary-yellow: #ffe266;
+      --wordinary-mint: #9fe4c3;
+      --shadow: 0 20px 60px rgba(58, 46, 80, .12);
+      --shadow-sm: 0 9px 26px rgba(58, 46, 80, .09);
+    }
+    body.dark {
+      --bg: #15131a;
+      --surface: #1f1c26;
+      --surface-2: #28242f;
+      --surface-3: #332e3c;
+      --ink: #f7f2ff;
+      --muted: #aaa3b4;
+      --line: rgba(247, 242, 255, .10);
+      --green: #aa98ff;
+      --green-dark: #d5cbff;
+      --green-soft: #322b55;
+    }
+    body {
+      background:
+        radial-gradient(circle at 8% 0%, rgba(255, 226, 102, .24), transparent 27%),
+        radial-gradient(circle at 96% 8%, rgba(109, 85, 247, .14), transparent 29%),
+        radial-gradient(circle at 72% 94%, rgba(255, 138, 102, .10), transparent 27%),
+        var(--bg);
+    }
+    .sidebar { background: color-mix(in srgb, var(--surface) 92%, transparent); }
+    .brand { letter-spacing: -1.15px; }
+    .brand-mark.wordinary-mark {
+      position: relative; overflow: visible; transform: rotate(-3deg);
+      border-radius: 12px 12px 12px 3px;
+      background: var(--wordinary-violet);
+      box-shadow: 5px 5px 0 var(--wordinary-yellow), 0 13px 25px rgba(75, 53, 207, .25);
+      font-family: Georgia, serif;
+    }
+    .brand-mark.wordinary-mark span { font-size: 23px; font-weight: 800; transform: translateY(-1px); }
+    .brand-mark.wordinary-mark i { position:absolute; right:-7px; top:-9px; width:18px; height:18px; border-radius:50%; background:var(--wordinary-coral); color:transparent; border:3px solid var(--surface); }
+    .brand small { color: var(--wordinary-violet); letter-spacing: .75px; text-transform: none; font-size: 9px; }
+    .nav-btn.active { background: var(--green-soft); color: var(--green-dark); box-shadow: inset 3px 0 0 var(--wordinary-violet); }
+    .sidebar-card { background: linear-gradient(150deg, #2b2540, #5143b6); }
+    .sidebar-card::after { background: rgba(255, 226, 102, .24); }
+    .reader-card, .video-player-card, .caption-panel { box-shadow: 0 18px 0 rgba(33,29,41,.025), var(--shadow); }
+    .article-title { text-wrap: balance; }
+    .reading-hint { background: linear-gradient(135deg, rgba(255,226,102,.23), rgba(109,85,247,.08)); border-color: rgba(109,85,247,.15); }
+    mark.saved-word { background: linear-gradient(transparent 55%, rgba(255, 226, 102, .78) 55%); }
+    .eyebrow { color: var(--wordinary-violet); }
+    .video-new-badge { background: var(--wordinary-coral); }
+

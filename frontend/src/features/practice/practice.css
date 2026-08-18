@@ -1,0 +1,92 @@
+    .practice-mode-tabs {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      margin: -6px 0 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: var(--shadow-soft);
+    }
+    .practice-mode-btn {
+      min-height: 36px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      padding: 0 14px;
+      cursor: pointer;
+    }
+    .practice-mode-btn.active {
+      background: var(--green);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(31, 122, 82, .2);
+    }
+    .practice-mode-btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+    #reviewView .review-guide-strip {
+      display: block;
+      width: min(620px, 100%);
+      margin: -8px 0 18px;
+    }
+    #reviewView .review-guide-strip div {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      padding: 12px 14px;
+      box-shadow: var(--shadow-soft);
+    }
+    #reviewView .review-guide-strip strong { display: block; font-size: 12px; margin-bottom: 4px; }
+    #reviewView .review-guide-strip span { display: block; color: var(--muted); font-size: 11px; font-weight: 700; line-height: 1.45; }
+    .review-shell { min-height: calc(100vh - 205px); display: grid; place-items: center; }
+    .review-stage { width: min(620px, 100%); }
+    .review-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; color: var(--muted); font-size: 12px; font-weight: 800; }
+    .review-track { height: 7px; background: var(--surface-3); border-radius: 999px; overflow: hidden; margin-bottom: 20px; }
+    .review-track span { display: block; height: 100%; background: var(--green); width: 0%; transition: width .3s ease; }
+    .review-card-wrap { perspective: 1200px; cursor: pointer; }
+    .review-card {
+      min-height: 410px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform .55s cubic-bezier(.2,.72,.2,1);
+    }
+    .review-card.flipped { transform: rotateY(180deg); }
+    .review-face {
+      position: absolute; inset: 0;
+      backface-visibility: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 31px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 36px;
+      text-align: center;
+    }
+    .review-back { transform: rotateY(180deg); }
+    .review-icon { width: 108px; height: 108px; border-radius: 30px; background: #edf7f1; display: grid; place-items: center; margin-bottom: 22px; }
+    .review-icon img { width: 76px; height: 76px; }
+    .review-word { font-size: 47px; font-weight: 800; letter-spacing: -1.8px; }
+    .review-translation { font-size: 30px; color: var(--green); font-weight: 800; letter-spacing: -.8px; }
+    .review-sentence { margin-top: 20px; font-family: "Newsreader", serif; color: var(--muted); font-size: 18px; line-height: 1.5; }
+    .flip-hint { position: absolute; bottom: 20px; color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; }
+    .review-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-top: 17px; opacity: 0; pointer-events: none; transition: .2s ease; }
+    .review-actions.show { opacity: 1; pointer-events: auto; }
+    .rate-btn { height: 53px; border-radius: 16px; border: 1px solid var(--line); cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .rate-btn.again { background: #fff0ee; color: #b94c44; }
+    .rate-btn.good { background: var(--green); color: #fff; border-color: var(--green); }
+    .review-empty { background: var(--surface); border: 1px solid var(--line); border-radius: 30px; padding: 70px 30px; text-align: center; box-shadow: var(--shadow); }
+    .review-empty h2 { font-family: "Newsreader", serif; font-size: 39px; margin: 8px 0; }
+    .review-empty p { color: var(--muted); line-height: 1.6; }
+    .review-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 14px; }
+
+    @media (max-width: 560px) {
+      .practice-mode-tabs { display: flex; overflow-x: auto; }
+      .practice-mode-btn { flex: 1 0 auto; padding: 0 12px; }
+      .review-shell { min-height: calc(100vh - 230px); }
+    }

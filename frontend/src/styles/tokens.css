@@ -1,0 +1,49 @@
+    :root {
+      --bg: #f4f1e9;
+      --surface: #fffdf8;
+      --surface-2: #f8f5ee;
+      --surface-3: #ece8dd;
+      --ink: #17211b;
+      --muted: #6f776f;
+      --line: rgba(23, 33, 27, .11);
+      --green: #1f7a52;
+      --green-dark: #11553a;
+      --green-soft: #dff3e8;
+      --lime: #d9f16f;
+      --yellow: #ffcc59;
+      --red: #e7675d;
+      --blue: #5389db;
+      --shadow: 0 18px 55px rgba(42, 53, 47, .12);
+      --shadow-sm: 0 8px 25px rgba(42, 53, 47, .09);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --reader-size: 21px;
+      --learning-card-radius: 18px;
+      --learning-card-padding: 12px;
+      --learning-card-gap: 13px;
+      --learning-card-border: 1px solid var(--line);
+      --learning-card-bg: var(--surface);
+      --learning-card-shadow: var(--shadow-sm);
+      --learning-card-hover-shadow: var(--shadow);
+      --learning-card-hover-lift: translateY(-2px);
+      --learning-card-icon-size: 48px;
+      --learning-card-icon-radius: 15px;
+      --learning-card-action-size: 34px;
+    }
+
+    body.dark {
+      --bg: #101611;
+      --surface: #182019;
+      --surface-2: #202920;
+      --surface-3: #293329;
+      --ink: #eef6ee;
+      --muted: #9fa99f;
+      --line: rgba(240, 255, 242, .1);
+      --green: #68c894;
+      --green-dark: #a8e8c1;
+      --green-soft: #1f3c2b;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .3);
+      --shadow-sm: 0 8px 25px rgba(0, 0, 0, .22);
+    }

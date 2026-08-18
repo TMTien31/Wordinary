@@ -1,0 +1,71 @@
+services:
+  frontend:
+    image: nginx:1.27-alpine
+    ports:
+      - "5500:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: ./backend
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    environment:
+      APP_NAME: ${APP_NAME:-Wordinary API}
+      API_V1_PREFIX: ${API_V1_PREFIX:-/api/v1}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost:5500,http://127.0.0.1:5500}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://wordinary:wordinary@db:5432/wordinary}
+      AUTH_SECRET_KEY: ${AUTH_SECRET_KEY:-wordinary-local-dev-secret-change-me}
+      ACCESS_TOKEN_EXPIRES_SECONDS: ${ACCESS_TOKEN_EXPIRES_SECONDS:-604800}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-minio}
+      STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-http://minio:9000}
+      STORAGE_PUBLIC_ENDPOINT_URL: ${STORAGE_PUBLIC_ENDPOINT_URL:-http://localhost:9000}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-wordinary}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-wordinary-local-minio-secret}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-wordinary-dev}
+      STORAGE_REGION: ${STORAGE_REGION:-us-east-1}
+      STORAGE_PRESIGNED_EXPIRES_SECONDS: ${STORAGE_PRESIGNED_EXPIRES_SECONDS:-900}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wordinary}
+      POSTGRES_USER: ${POSTGRES_USER:-wordinary}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wordinary}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-wordinary} -d $${POSTGRES_DB:-wordinary}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY:-wordinary}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY:-wordinary-local-minio-secret}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  minio_data:

@@ -1,0 +1,13 @@
+    /* ───────────── WORDINARY V6.1 CONTROLS ───────────── */
+    .brand-mark.wordinary-mark i { display:none !important; }
+    .language-toggle {
+      height:40px; min-width:66px; border:1px solid var(--line); background:var(--surface);
+      border-radius:14px; display:flex; align-items:center; justify-content:center; gap:7px;
+      cursor:pointer; box-shadow:var(--shadow-sm); color:var(--ink); transition:.2s ease;
+    }
+    .language-toggle:hover { transform:translateY(-2px); }
+    .language-toggle span { color:var(--wordinary-violet); font-size:15px; font-weight:900; }
+    .language-toggle strong { font-size:11px; letter-spacing:.7px; }
+    .reader-layout.rail-collapsed { grid-template-columns:minmax(0,1fr); }
+    .reader-layout.rail-collapsed .article-wrap { max-width:910px; }
+    #readerRailToggle.active { background:var(--green-soft); color:var(--green-dark); border-color:color-mix(in srgb,var(--green) 35%,var(--line)); }

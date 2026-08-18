@@ -1,0 +1,102 @@
+    /* ───────────── V6.3 COLLAPSIBLE SIDEBARS + SETTINGS ───────────── */
+    .app-shell, .sidebar, .main { transition: grid-template-columns .26s ease, width .26s ease, padding .26s ease; }
+    .sidebar { overflow: visible; }
+    .sidebar-edge-toggle,
+    .reader-rail-edge-toggle {
+      width: 34px; height: 34px; border-radius: 12px; border: 1px solid var(--line);
+      background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm);
+      display: grid; place-items: center; cursor: pointer; z-index: 50;
+      transition: transform .18s ease, background .18s ease, color .18s ease;
+    }
+    .sidebar-edge-toggle:hover,
+    .reader-rail-edge-toggle:hover { transform: scale(1.05); background: var(--green-soft); color: var(--green-dark); }
+    .sidebar-edge-toggle span,
+    .reader-rail-edge-toggle span { font-size: 24px; line-height: 1; transform: translateY(-1px); }
+    .sidebar-edge-toggle { position: absolute; top: 50%; right: -17px; transform: translateY(-50%); }
+    .sidebar-edge-toggle:hover { transform: translateY(-50%) scale(1.05); }
+    .brand-copy, .nav-text, .nav-count, .nav-label, .sidebar-card { transition: opacity .16s ease; }
+
+    @media (min-width: 781px) {
+      .app-shell.sidebar-collapsed { grid-template-columns: 78px minmax(0, 1fr); }
+      .app-shell.sidebar-collapsed .sidebar { width: 78px; padding: 28px 11px 20px; }
+      .app-shell.sidebar-collapsed .brand { justify-content: center; padding-left: 0; padding-right: 0; }
+      .app-shell.sidebar-collapsed .brand-copy,
+      .app-shell.sidebar-collapsed .nav-label,
+      .app-shell.sidebar-collapsed .nav-text,
+      .app-shell.sidebar-collapsed .nav-count,
+      .app-shell.sidebar-collapsed .sidebar-card { display: none; }
+      .app-shell.sidebar-collapsed .nav-btn { justify-content: center; padding: 12px 0; gap: 0; }
+      .app-shell.sidebar-collapsed .nav-btn:hover { transform: translateY(-1px); }
+      .app-shell.sidebar-collapsed .nav-btn.active { box-shadow: inset 0 3px 0 var(--wordinary-violet); }
+      .app-shell.sidebar-collapsed .nav-icon { flex: 0 0 38px; width: 38px; height: 38px; }
+    }
+
+    .reader-layout { position: relative; }
+    .insight-rail { min-width: 0; overflow: visible; transition: width .25s ease, opacity .2s ease; }
+    .insight-rail-content { display: grid; transition: opacity .18s ease, transform .22s ease; }
+    .reader-rail-edge-toggle { position: absolute; top: 18px; left: -17px; }
+    .reader-insight-panel { padding: 17px; }
+    .reader-insight-section + .reader-insight-section { margin-top: 0; }
+    .reader-insight-divider { height: 1px; background: var(--line); margin: 18px -2px; }
+    .reader-layout.rail-collapsed { grid-template-columns: minmax(0,1fr) 0; gap: 0; }
+    .reader-layout.rail-collapsed .insight-rail { width: 0; }
+    .reader-layout.rail-collapsed .insight-rail-content {
+      opacity: 0; transform: translateX(14px); pointer-events: none; visibility: hidden;
+    }
+    .reader-layout.rail-collapsed .article-wrap { max-width: 910px; }
+    #readerRailToggle.active { background: var(--green-soft); color: var(--green-dark); border-color: color-mix(in srgb,var(--green) 35%,var(--line)); }
+
+    .settings-heading p { max-width: 720px; }
+    .settings-grid { width: min(920px, 100%); display: grid; gap: 16px; }
+    .settings-card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 26px;
+      box-shadow: var(--shadow-sm); padding: 22px;
+    }
+    .settings-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+    .settings-card-head > div { display: flex; gap: 14px; align-items: flex-start; }
+    .settings-icon {
+      flex: 0 0 46px; width: 46px; height: 46px; border-radius: 15px; display: grid; place-items: center;
+      background: var(--green-soft); color: var(--green-dark); font-size: 22px; font-weight: 900;
+    }
+    .settings-card h2 { margin: 1px 0 6px; font-size: 18px; letter-spacing: -.35px; }
+    .settings-card p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .settings-badge { padding: 7px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); font-size: 10px; font-weight: 900; }
+    .settings-api-list { gap: 0; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+    .settings-api-list .api-row { min-height: 54px; padding: 0 15px; background: var(--surface-2); font-size: 12px; }
+    .settings-api-list .api-row + .api-row { border-top: 1px solid var(--line); }
+    .profile-settings-card { display: grid; gap: 18px; }
+    .profile-icon { background: color-mix(in srgb, var(--wordinary-yellow) 20%, var(--surface-2)); color: var(--ink); }
+    .profile-summary {
+      display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 8px;
+      background: var(--surface-2); border: 1px solid var(--line);
+    }
+    .profile-avatar {
+      width: 52px; height: 52px; border-radius: 8px; display: grid; place-items: center;
+      background: linear-gradient(145deg, var(--green), #2a5f9c); color: #fff; font-size: 20px; font-weight: 950;
+    }
+    .profile-summary h3 { margin: 0 0 4px; font-size: 18px; letter-spacing: 0; }
+    .profile-summary p { margin: 0; font-size: 12px; overflow-wrap: anywhere; }
+    .profile-list { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .profile-row {
+      min-height: 48px; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px;
+      align-items: center; padding: 0 14px; background: var(--surface);
+    }
+    .profile-row + .profile-row { border-top: 1px solid var(--line); }
+    .profile-row span { color: var(--muted); font-size: 11px; font-weight: 850; text-transform: uppercase; }
+    .profile-row strong { min-width: 0; color: var(--ink); font-size: 12px; font-weight: 800; overflow-wrap: anywhere; }
+
+    @media (max-width: 1100px) {
+      .reader-layout.rail-collapsed { grid-template-columns: 1fr; gap: 0; }
+      .reader-layout.rail-collapsed .insight-rail { width: 100%; height: 0; min-height: 0; }
+      .insight-rail { position: relative; grid-template-columns: 1fr; }
+      .reader-rail-edge-toggle { left: auto; right: 12px; top: -17px; }
+    }
+    @media (max-width: 780px) {
+      .sidebar-edge-toggle { display: none; }
+      .reader-rail-edge-toggle { top: -15px; right: 10px; }
+      .settings-card { padding: 17px; border-radius: 22px; }
+      .settings-card-head { gap: 12px; }
+      .settings-card-head > div { gap: 10px; }
+      .profile-row { grid-template-columns: 1fr; gap: 3px; padding: 10px 14px; }
+    }
+
