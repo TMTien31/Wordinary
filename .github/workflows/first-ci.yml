@@ -1,32 +1,31 @@
-name: First CI
+name: My First Action
 
 on:
   workflow_dispatch:
-
-  push:
-    branches:
-      - main
 
 permissions:
   contents: read
 
 jobs:
-  smoke-test:
-    name: Smoke test
+  inspect-repository:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show repository information
+      - name: Inspect source code
         run: |
-          echo "Repository: ${{ github.repository }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit: ${{ github.sha }}"
-          echo "Runner architecture:"
-          uname -a
+          echo "Current directory:"
+          pwd
 
-      - name: List repository files
-        run: |
-          ls -la
+          echo "Latest commit:"
+          git log -1 --oneline
+
+          echo "Repository files:"
+          find . \
+            -maxdepth 2 \
+            -type f \
+            -not -path "./.git/*" \
+            | sort \
+            | head -100
