@@ -1,8 +1,11 @@
-name: My First Action
+name: Build and publish Wordinary API
 
-run-name: Build and push Wordinary native image
+run-name: Build Wordinary API from ${{ github.ref_name }}
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -28,10 +31,14 @@ jobs:
           docker compose config --services
 
       - name: Build Docker image
-        run: |
-          docker compose build
+        run: docker compose build
 
-      - name: Create image tags
+      - name: Check built image architecture
+        run: |
+          docker image inspect wordinary-api:latest \
+            --format 'Platform: {{.Os}}/{{.Architecture}}'
+
+      - name: Tag Docker image
         run: |
           SHORT_SHA="${GITHUB_SHA::7}"
 
@@ -52,12 +59,12 @@ jobs:
                 --username "${{ github.actor }}" \
                 --password-stdin
 
-      - name: Push image to GHCR
+      - name: Push Docker image
         run: |
           docker push "${IMAGE_NAME}:${IMAGE_TAG}"
           docker push "${IMAGE_NAME}:latest"
 
-      - name: Show published image
+      - name: Show published images
         run: |
           echo "Published images:"
           echo "${IMAGE_NAME}:${IMAGE_TAG}"
