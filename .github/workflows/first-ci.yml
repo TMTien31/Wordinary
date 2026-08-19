@@ -1,6 +1,6 @@
 name: My First Action
 
-run-name: Build Wordinary manually
+run-name: Build Wordinary native image
 
 on:
   workflow_dispatch:
@@ -9,32 +9,41 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-native:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Check Docker environment
-        run: |
-          docker --version
-          docker compose version
-          docker buildx version
-          uname -m
-
       - name: Validate Compose configuration
         run: |
+          docker compose config --quiet
+
           echo "Compose services:"
           docker compose config --services
 
-          echo "Validating compose.yaml..."
-          docker compose config --quiet
-
-      - name: Build Docker images
+      - name: Build Docker image
         run: |
           docker compose build
 
-      - name: Show built images
+      - name: Tag image with commit
         run: |
-          docker image ls
+          SHORT_SHA="${GITHUB_SHA::7}"
+
+          docker tag \
+            wordinary-api:latest \
+            "wordinary-api:${SHORT_SHA}"
+
+          echo "IMAGE_TAG=${SHORT_SHA}" >> "${GITHUB_ENV}"
+
+      - name: Verify built image
+        run: |
+          echo "Image architecture:"
+
+          docker image inspect \
+            "wordinary-api:${IMAGE_TAG}" \
+            --format='OS={{.Os}} Architecture={{.Architecture}}'
+
+          echo "Wordinary images:"
+          docker image ls wordinary-api
