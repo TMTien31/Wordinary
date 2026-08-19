@@ -1,6 +1,6 @@
 name: My First Action
 
-run-name: Inspect build environment
+run-name: Build Wordinary manually
 
 on:
   workflow_dispatch:
@@ -9,45 +9,32 @@ permissions:
   contents: read
 
 jobs:
-  inspect-build-environment:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Check Docker tooling
+      - name: Check Docker environment
         run: |
-          echo "Docker:"
           docker --version
-
-          echo "Docker Compose:"
           docker compose version
-
-          echo "Docker Buildx:"
           docker buildx version
-
-          echo "Runner architecture:"
           uname -m
 
-      - name: Detect application manifests
+      - name: Validate Compose configuration
         run: |
-          echo "Build-related files:"
+          echo "Compose services:"
+          docker compose config --services
 
-          find . \
-            -maxdepth 4 \
-            -type f \
-            \( \
-              -iname "Dockerfile*" \
-              -o -iname "compose*.yml" \
-              -o -iname "compose*.yaml" \
-              -o -name "docker-compose.yml" \
-              -o -name "docker-compose.yaml" \
-              -o -name "package.json" \
-              -o -name "requirements.txt" \
-              -o -name "pyproject.toml" \
-              -o -name "pom.xml" \
-              -o -name "build.gradle" \
-            \) \
-            -not -path "./.git/*" \
-            | sort
+          echo "Validating compose.yaml..."
+          docker compose config --quiet
+
+      - name: Build Docker images
+        run: |
+          docker compose build
+
+      - name: Show built images
+        run: |
+          docker image ls
