@@ -18,12 +18,15 @@ services:
   api:
     image: ghcr.io/tmtien31/wordinary-api:${IMAGE_TAG:?IMAGE_TAG is required}
     restart: unless-stopped
-    command: >
-      sh -c "alembic upgrade head &&
-             uvicorn app.main:app
-             --host 0.0.0.0
-             --port 8000
-             --workers ${API_WORKERS:-2}"
+    command:
+      - sh
+      - -c
+      - >
+        alembic upgrade head &&
+        uvicorn app.main:app
+        --host 0.0.0.0
+        --port 8000
+        --workers ${API_WORKERS:-2}
     env_file:
       - ${APP_ENV_FILE:-.env}
     depends_on:
