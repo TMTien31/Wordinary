@@ -1,4 +1,11 @@
-const API_BASE_URL = "http://localhost:8000/api/v1";
+function resolveDefaultApiBaseUrl() {
+  const localHostnames = ["", "localhost", "127.0.0.1"];
+  return localHostnames.includes(window.location.hostname)
+    ? "http://localhost:8000/api/v1"
+    : "/api/v1";
+}
+
+const API_BASE_URL = window.WORDINARY_API_BASE_URL || resolveDefaultApiBaseUrl();
 const AUTH_TOKEN_KEY = "wordinary_access_token";
 
 function getAuthToken() {

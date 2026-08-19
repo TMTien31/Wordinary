@@ -1,6 +1,6 @@
-name: Build and publish Wordinary API
+name: Build and publish Wordinary images
 
-run-name: Build Wordinary API from ${{ github.ref_name }}
+run-name: Build Wordinary images from ${{ github.ref_name }}
 
 on:
   push:
@@ -13,7 +13,8 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/tmtien31/wordinary-api
+  API_IMAGE: ghcr.io/tmtien31/wordinary-api
+  FRONTEND_IMAGE: ghcr.io/tmtien31/wordinary-frontend
 
 jobs:
   build-and-push:
@@ -38,7 +39,12 @@ jobs:
           echo "Compose services:"
           docker compose config --services
 
-      - name: Build ARM64 Docker image
+      - name: Validate production Compose configuration
+        run: |
+          APP_ENV_FILE=env.prod.example \
+            docker compose --env-file env.prod.example -f compose.prod.yaml config --quiet
+
+      - name: Build ARM64 backend image
         run: |
           docker buildx build \
             --platform linux/arm64 \
@@ -46,22 +52,42 @@ jobs:
             --tag wordinary-api:latest \
             ./backend
 
-      - name: Check built image architecture
+      - name: Build ARM64 frontend image
         run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            --load \
+            --tag wordinary-frontend:latest \
+            ./frontend
+
+      - name: Check built image architectures
+        run: |
+          echo "Backend image:"
           docker image inspect wordinary-api:latest \
             --format 'Platform: {{.Os}}/{{.Architecture}}'
+          echo "Frontend image:"
+          docker image inspect wordinary-frontend:latest \
+            --format 'Platform: {{.Os}}/{{.Architecture}}'
 
-      - name: Tag Docker image
+      - name: Tag Docker images
         run: |
           SHORT_SHA="${GITHUB_SHA::7}"
 
           docker tag \
             wordinary-api:latest \
-            "${IMAGE_NAME}:${SHORT_SHA}"
+            "${API_IMAGE}:${SHORT_SHA}"
 
           docker tag \
             wordinary-api:latest \
-            "${IMAGE_NAME}:latest"
+            "${API_IMAGE}:latest"
+
+          docker tag \
+            wordinary-frontend:latest \
+            "${FRONTEND_IMAGE}:${SHORT_SHA}"
+
+          docker tag \
+            wordinary-frontend:latest \
+            "${FRONTEND_IMAGE}:latest"
 
           echo "IMAGE_TAG=${SHORT_SHA}" >> "${GITHUB_ENV}"
 
@@ -72,13 +98,17 @@ jobs:
                 --username "${{ github.actor }}" \
                 --password-stdin
 
-      - name: Push Docker image
+      - name: Push Docker images
         run: |
-          docker push "${IMAGE_NAME}:${IMAGE_TAG}"
-          docker push "${IMAGE_NAME}:latest"
+          docker push "${API_IMAGE}:${IMAGE_TAG}"
+          docker push "${API_IMAGE}:latest"
+          docker push "${FRONTEND_IMAGE}:${IMAGE_TAG}"
+          docker push "${FRONTEND_IMAGE}:latest"
 
       - name: Show published images
         run: |
           echo "Published images:"
-          echo "${IMAGE_NAME}:${IMAGE_TAG}"
-          echo "${IMAGE_NAME}:latest"
+          echo "${API_IMAGE}:${IMAGE_TAG}"
+          echo "${API_IMAGE}:latest"
+          echo "${FRONTEND_IMAGE}:${IMAGE_TAG}"
+          echo "${FRONTEND_IMAGE}:latest"
