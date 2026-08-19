@@ -1,15 +1,19 @@
 name: My First Action
 
-run-name: Build Wordinary native image
+run-name: Build and push Wordinary native image
 
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/tmtien31/wordinary-api
 
 jobs:
-  build-native:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,23 +31,34 @@ jobs:
         run: |
           docker compose build
 
-      - name: Tag image with commit
+      - name: Create image tags
         run: |
           SHORT_SHA="${GITHUB_SHA::7}"
 
           docker tag \
             wordinary-api:latest \
-            "wordinary-api:${SHORT_SHA}"
+            "${IMAGE_NAME}:${SHORT_SHA}"
+
+          docker tag \
+            wordinary-api:latest \
+            "${IMAGE_NAME}:latest"
 
           echo "IMAGE_TAG=${SHORT_SHA}" >> "${GITHUB_ENV}"
 
-      - name: Verify built image
+      - name: Log in to GHCR
         run: |
-          echo "Image architecture:"
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | docker login ghcr.io \
+                --username "${{ github.actor }}" \
+                --password-stdin
 
-          docker image inspect \
-            "wordinary-api:${IMAGE_TAG}" \
-            --format='OS={{.Os}} Architecture={{.Architecture}}'
+      - name: Push image to GHCR
+        run: |
+          docker push "${IMAGE_NAME}:${IMAGE_TAG}"
+          docker push "${IMAGE_NAME}:latest"
 
-          echo "Wordinary images:"
-          docker image ls wordinary-api
+      - name: Show published image
+        run: |
+          echo "Published images:"
+          echo "${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "${IMAGE_NAME}:latest"
