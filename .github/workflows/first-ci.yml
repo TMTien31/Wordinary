@@ -1,5 +1,7 @@
 name: My First Action
 
+run-name: Inspect build environment
+
 on:
   workflow_dispatch:
 
@@ -7,25 +9,45 @@ permissions:
   contents: read
 
 jobs:
-  inspect-repository:
+  inspect-build-environment:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Inspect source code
+      - name: Check Docker tooling
         run: |
-          echo "Current directory:"
-          pwd
+          echo "Docker:"
+          docker --version
 
-          echo "Latest commit:"
-          git log -1 --oneline
+          echo "Docker Compose:"
+          docker compose version
 
-          echo "Repository files:"
+          echo "Docker Buildx:"
+          docker buildx version
+
+          echo "Runner architecture:"
+          uname -m
+
+      - name: Detect application manifests
+        run: |
+          echo "Build-related files:"
+
           find . \
-            -maxdepth 2 \
+            -maxdepth 4 \
             -type f \
+            \( \
+              -iname "Dockerfile*" \
+              -o -iname "compose*.yml" \
+              -o -iname "compose*.yaml" \
+              -o -name "docker-compose.yml" \
+              -o -name "docker-compose.yaml" \
+              -o -name "package.json" \
+              -o -name "requirements.txt" \
+              -o -name "pyproject.toml" \
+              -o -name "pom.xml" \
+              -o -name "build.gradle" \
+            \) \
             -not -path "./.git/*" \
-            | sort \
-            | head -100
+            | sort
