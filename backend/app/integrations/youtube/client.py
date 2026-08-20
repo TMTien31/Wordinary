@@ -4,11 +4,13 @@ import html
 import json
 import os
 import re
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any
 
 
@@ -211,15 +213,13 @@ def get_captions(url: str, language: str) -> dict[str, Any]:
     if not selected:
         raise RuntimeError("A caption track exists, but no supported subtitle format was available")
 
-    raw = download_subtitle_track(selected)
     ext = str(selected.get("ext", "")).lower()
-    if ext == "json3":
-        cues = parse_json3(raw)
-    elif ext in {"ttml", "srv3"}:
-        cues = parse_ttml_or_srv3(raw)
-    else:
-        cues = parse_vtt_or_srt(raw)
+    try:
+        raw = download_subtitle_track(selected)
+    except RuntimeError:
+        raw, ext = download_subtitle_with_yt_dlp(url, selected_language, automatic=source == "automatic")
 
+    cues = parse_subtitle_text(raw, ext)
     if not cues:
         raise RuntimeError(f"Downloaded subtitle track ({ext}) did not contain readable cues")
 
@@ -231,6 +231,14 @@ def get_captions(url: str, language: str) -> dict[str, Any]:
         "caption_count": len(cues),
         "captions": cues,
     }
+
+
+def parse_subtitle_text(raw: str, ext: str) -> list[dict[str, Any]]:
+    if ext == "json3":
+        return parse_json3(raw)
+    if ext in {"ttml", "srv3"}:
+        return parse_ttml_or_srv3(raw)
+    return parse_vtt_or_srt(raw)
 
 
 def _caption(start: float, end: float, text: str) -> dict[str, Any] | None:
@@ -276,6 +284,18 @@ def yt_dlp_options() -> dict[str, Any]:
     return options
 
 
+def yt_dlp_subtitle_options(temp_dir: str, language: str, *, automatic: bool) -> dict[str, Any]:
+    options = {
+        **yt_dlp_options(),
+        "outtmpl": str(Path(temp_dir) / "%(id)s.%(ext)s"),
+        "writesubtitles": not automatic,
+        "writeautomaticsub": automatic,
+        "subtitleslangs": [language],
+        "subtitlesformat": "json3/vtt/srt/srv3/ttml/best",
+    }
+    return options
+
+
 def extract_video_info(url: str) -> dict[str, Any]:
     yt_dlp = import_yt_dlp()
     try:
@@ -317,6 +337,37 @@ def download_subtitle_track(track: dict[str, Any]) -> str:
     if len(body) > MAX_SUBTITLE_BYTES:
         raise RuntimeError("Subtitle track exceeded the size limit")
     return body.decode("utf-8", errors="replace")
+
+
+def download_subtitle_with_yt_dlp(url: str, language: str, *, automatic: bool) -> tuple[str, str]:
+    yt_dlp = import_yt_dlp()
+    try:
+        temp_parent = os.getenv("WORDINARY_TEMP_DIR", "").strip() or None
+        with tempfile.TemporaryDirectory(prefix="wordinary-captions-", dir=temp_parent) as temp_dir:
+            with yt_dlp.YoutubeDL(yt_dlp_subtitle_options(temp_dir, language, automatic=automatic)) as ydl:
+                ydl.download([url])
+            candidates = _subtitle_files(Path(temp_dir))
+            if not candidates:
+                raise RuntimeError("yt-dlp did not write a subtitle file")
+            subtitle_file = candidates[0]
+            if subtitle_file.stat().st_size > MAX_SUBTITLE_BYTES:
+                raise RuntimeError("Subtitle track exceeded the size limit")
+            return subtitle_file.read_text(encoding="utf-8", errors="replace"), subtitle_file.suffix[1:].lower()
+    except Exception as exc:
+        if isinstance(exc, RuntimeError):
+            raise
+        raise RuntimeError(f"yt-dlp failed to write subtitle file: {exc}") from exc
+
+
+def _subtitle_files(directory: Path) -> list[Path]:
+    preference = {"json3": 0, "vtt": 1, "srt": 2, "srv3": 3, "ttml": 4}
+    candidates = [
+        path
+        for path in directory.rglob("*")
+        if path.is_file() and path.suffix[1:].lower() in preference
+    ]
+    candidates.sort(key=lambda path: preference[path.suffix[1:].lower()])
+    return candidates
 
 
 def basic_metadata(info: dict[str, Any], original_url: str) -> dict[str, Any]:

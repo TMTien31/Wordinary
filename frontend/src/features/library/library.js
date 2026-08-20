@@ -161,6 +161,9 @@ async function openStoredPdfItem(item) {
   state.pendingPdfLibraryId = item.id;
   if (item.storageSource === "api" && item.metadata?.downloadUrl) {
     try {
+      if (typeof setPdfOnboardingLoading === "function") {
+        setPdfOnboardingLoading(true, state.language === "en" ? "Downloading the saved PDF..." : "Đang tải PDF đã lưu...");
+      }
       setPdfLoading(true, state.language === "en" ? "Downloading PDF..." : "Đang tải PDF...");
       const downloadUrl = resolvePdfDownloadUrl(item.metadata.downloadUrl);
       const response = await fetch(downloadUrl, pdfDownloadOptions(item.metadata.downloadUrl));
@@ -173,6 +176,7 @@ async function openStoredPdfItem(item) {
       });
       return;
     } catch (error) {
+      if (typeof setPdfOnboardingLoading === "function") setPdfOnboardingLoading(false);
       showToast(state.language === "en" ? "Could not download PDF" : "Chưa tải được PDF", error.message || "Please try again.", "!");
     } finally {
       setPdfLoading(false);

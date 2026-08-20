@@ -62,3 +62,60 @@ def test_download_subtitle_track_uses_yt_dlp_urlopen(monkeypatch) -> None:
     assert dict(created[0].request.header_items())["User-agent"] == "TrackAgent"
     assert dict(created[0].request.header_items())["X-test"] == "1"
     assert created[0].response.closed is True
+
+
+def test_download_subtitle_with_yt_dlp_reads_written_file(monkeypatch) -> None:
+    created: list[dict[str, Any]] = []
+
+    class FakeSubtitleFile:
+        suffix = ".vtt"
+
+        @staticmethod
+        def stat():
+            return type("Stat", (), {"st_size": 42})()
+
+        @staticmethod
+        def read_text(**_kwargs: object) -> str:
+            return "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello"
+
+    class FakeTemporaryDirectory:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def __enter__(self) -> str:
+            return "fake-temp"
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    class FakeYDL:
+        def __init__(self, options: dict[str, Any]) -> None:
+            self.options = options
+            created.append(options)
+
+        def __enter__(self) -> "FakeYDL":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+        def download(self, urls: list[str]) -> None:
+            assert urls == ["https://youtu.be/example"]
+
+    class FakeYtDlp:
+        YoutubeDL = FakeYDL
+
+    monkeypatch.setattr(client, "import_yt_dlp", lambda: FakeYtDlp)
+    monkeypatch.setattr(client, "_subtitle_files", lambda _directory: [FakeSubtitleFile()])
+    monkeypatch.setattr(client.tempfile, "TemporaryDirectory", FakeTemporaryDirectory)
+
+    raw, ext = client.download_subtitle_with_yt_dlp(
+        "https://youtu.be/example",
+        "en",
+        automatic=True,
+    )
+
+    assert raw.startswith("WEBVTT")
+    assert ext == "vtt"
+    assert created[0]["writeautomaticsub"] is True
+    assert created[0]["writesubtitles"] is False

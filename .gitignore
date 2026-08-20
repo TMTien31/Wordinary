@@ -39,6 +39,7 @@ ENV/
 *.tmp
 .tmp/
 .codex_tmp/
+.pytest-caption-temp/
 pytest-cache-files-*/
 
 # Frontend dependencies/build output

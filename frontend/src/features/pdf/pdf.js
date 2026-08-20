@@ -65,10 +65,27 @@ function setPdfLoading(show, text = "Đang render trang…") {
   if ($("#pdfLoadingText")) $("#pdfLoadingText").textContent = text;
 }
 
+function setPdfOnboardingLoading(show, text = "") {
+  if (show) $("#pdfOnboarding")?.classList.remove("is-hidden");
+  $("#pdfDropzone")?.classList.toggle("loading", show);
+  ["#pdfChooseFile", "#pdfLoadDemo"].forEach(selector => {
+    const button = $(selector);
+    if (button) button.disabled = show;
+  });
+  if (show) {
+    $("#pdfOnboardingTitle").textContent = state.language === "en" ? "Opening your PDF" : "Đang mở PDF";
+    $("#pdfOnboardingText").textContent = text || (state.language === "en" ? "Downloading and preparing the document..." : "Đang tải và chuẩn bị tài liệu...");
+  } else {
+    $("#pdfOnboardingTitle").textContent = state.language === "en" ? "Drop a document here" : "Thả tài liệu vào đây";
+    $("#pdfOnboardingText").textContent = state.language === "en" ? "The file is processed directly in your browser. The canvas preserves the original page, while a transparent text layer lets you highlight without breaking the layout." : "File được xử lý trực tiếp trong trình duyệt. Canvas giữ nguyên trang gốc, còn text layer trong suốt cho phép bôi đen mà không phá bố cục.";
+  }
+}
+
 async function openPdfBytes(bytes, fileName = "document.pdf", options = {}) {
   if (!bytes?.length) return;
   const originalBytes = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   const durableBytes = originalBytes.slice();
+  setPdfOnboardingLoading(true, state.language === "en" ? "Preparing the document viewer..." : "Đang chuẩn bị trình đọc tài liệu...");
   setPdfLoading(true, state.language === "en" ? "Opening PDF…" : "Đang mở PDF…");
   try {
     const pdfjs = await ensurePdfJs();
@@ -88,6 +105,7 @@ async function openPdfBytes(bytes, fileName = "document.pdf", options = {}) {
     pdfState.activeWord = "";
     pdfState.wordPages = [];
     $("#pdfOnboarding").classList.add("is-hidden");
+    setPdfOnboardingLoading(false);
     $("#pdfWorkspace").classList.remove("is-hidden");
     $("#pdfFileName").textContent = fileName;
     $("#pdfFileMeta").textContent = `${doc.numPages} ${state.language === "en" ? "pages" : "trang"} ${existingItem?.storageSource === "api" ? "• cloud" : "• uploading"}`;
@@ -143,13 +161,14 @@ async function openPdfBytes(bytes, fileName = "document.pdf", options = {}) {
   } catch (error) {
     console.error(error);
     showToast(state.language === "en" ? "Cannot open PDF" : "Không thể mở PDF", state.language === "en" ? "Try another file or run the app from a local web server." : "Hãy thử file khác hoặc chạy app bằng local web server.", "⚠️");
-  } finally { setPdfLoading(false); applyLanguage(); }
+  } finally { setPdfLoading(false); setPdfOnboardingLoading(false); applyLanguage(); }
 }
 
 async function handlePdfFile(file) {
   if (!file) return;
   if (!state.currentUser || !getAuthToken()) return showToast(state.language === "en" ? "Log in required" : "Cần đăng nhập", state.language === "en" ? "Sign in to save PDF files to your library." : "Đăng nhập để lưu PDF vào thư viện.", "!");
   if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") return showToast("Định dạng chưa hỗ trợ", "Hãy chọn một file PDF.", "⚠️");
+  setPdfOnboardingLoading(true, state.language === "en" ? "Reading the selected file..." : "Đang đọc file đã chọn...");
   const bytes = new Uint8Array(await file.arrayBuffer());
   const restoreItem = getLibraryItem(state.pendingPdfLibraryId);
   await openPdfBytes(bytes, file.name, { libraryItemId:state.pendingPdfLibraryId || "", restoreItem });
