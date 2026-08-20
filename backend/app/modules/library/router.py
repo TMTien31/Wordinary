@@ -8,6 +8,7 @@ from fastapi import Depends
 from fastapi import File
 from fastapi import Form
 from fastapi import HTTPException
+from fastapi import Query
 from fastapi import UploadFile
 from fastapi.responses import Response
 from fastapi.responses import StreamingResponse
@@ -15,6 +16,7 @@ from starlette import status
 
 from app.api.dependencies import CurrentUser
 from app.api.dependencies import DbSession
+from app.modules.auth.security import decode_pdf_download_token
 from app.modules.library.schemas import ArticleContentUpdate
 from app.modules.library.schemas import ArticleCreate
 from app.modules.library.schemas import ArticleDetailResponse
@@ -99,11 +101,17 @@ async def list_library(
 async def download_pdf_file(
     item_id: UUID,
     session: DbSession,
-    current_user: CurrentUser,
+    download_token: str = Query(..., alias="downloadToken"),
 ) -> StreamingResponse:
+    user_id = decode_pdf_download_token(download_token, item_id=item_id)
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired download token",
+        )
     download = await LibraryService(session).get_pdf_file(
         item_id=item_id,
-        user_id=current_user.id,
+        user_id=user_id,
     )
     file_name = quote(download.file_name or "document.pdf")
     headers = {

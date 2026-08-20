@@ -47,4 +47,44 @@ def decode_access_token(token: str) -> UUID | None:
         return None
 
 
-__all__ = ["create_access_token", "decode_access_token", "hash_password", "verify_password"]
+def create_pdf_download_token(
+    *,
+    user_id: UUID,
+    item_id: UUID,
+    expires_seconds: int,
+) -> str:
+    now = datetime.now(UTC)
+    expires_at = now + timedelta(seconds=expires_seconds)
+    payload = {
+        "sub": str(user_id),
+        "item": str(item_id),
+        "purpose": "pdf_download",
+        "iat": now,
+        "exp": expires_at,
+    }
+    return jwt.encode(payload, settings.auth_secret_key, algorithm=TOKEN_ALGORITHM)
+
+
+def decode_pdf_download_token(token: str, *, item_id: UUID) -> UUID | None:
+    try:
+        payload = jwt.decode(
+            token,
+            settings.auth_secret_key,
+            algorithms=[TOKEN_ALGORITHM],
+            options={"require": ["exp", "sub", "item", "purpose"]},
+        )
+        if payload["purpose"] != "pdf_download" or UUID(str(payload["item"])) != item_id:
+            return None
+        return UUID(str(payload["sub"]))
+    except (InvalidTokenError, KeyError, TypeError, ValueError):
+        return None
+
+
+__all__ = [
+    "create_access_token",
+    "create_pdf_download_token",
+    "decode_access_token",
+    "decode_pdf_download_token",
+    "hash_password",
+    "verify_password",
+]

@@ -439,7 +439,11 @@ async function loadVideoFromUrl(explicitUrl = "", options = {}) {
       if (!captionData) {
         renderCaptions();
         $("#captionDrawer").open = true;
-        showToast(state.language === "en" ? "Video loaded without a transcript" : "Chưa có transcript", state.language === "en" ? "Fetch captions automatically, upload VTT/SRT, or paste a transcript." : "Tự lấy caption, upload VTT/SRT hoặc dán transcript.", "💬");
+        showToast(
+          state.language === "en" ? "Video loaded without a transcript" : "Chưa có transcript",
+          videoState.lastCaptionError || (state.language === "en" ? "Fetch captions automatically, upload VTT/SRT, or paste a transcript." : "Tự lấy caption, upload VTT/SRT hoặc dán transcript."),
+          "💬"
+        );
       }
     } else if (/\.(mp4|webm|ogg)(?:[?#].*)?$/i.test(url)) {
       mountNativeVideo(url, decodeURIComponent(url.split("/").pop().split(/[?#]/)[0]) || "Direct video");
@@ -689,6 +693,7 @@ async function fetchCaptionsFromBridge(url = videoState.url, notify = true) {
     return false;
   }
   setCaptionSource("fetching captions...", false);
+  videoState.lastCaptionError = "";
   try {
     const data = await apiRequest(`/captions/fetch?lang=en&url=${encodeURIComponent(url)}`);
     const cues = Array.isArray(data?.captions) ? data.captions : [];
@@ -699,6 +704,7 @@ async function fetchCaptionsFromBridge(url = videoState.url, notify = true) {
     if (notify) showToast("Captions ready", `${cues.length} caption lines loaded.`, "✅");
     return data;
   } catch (error) {
+    videoState.lastCaptionError = error.message || "Check the caption service.";
     setCaptionSource("caption fetch failed", false);
     if (notify) showToast("Could not fetch captions", error.message || "Check the caption service.", "🔌");
     return null;

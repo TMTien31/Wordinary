@@ -19,6 +19,7 @@ const videoState = {
   pollingTimer: null,
   lastRenderedActive: -2,
   sourceLabel: "",
+  lastCaptionError: "",
   maxWatched: 0,
   libraryItemId: "",
   lastLibraryPersist: 0

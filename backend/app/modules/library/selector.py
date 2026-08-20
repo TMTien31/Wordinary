@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import UTC
+from datetime import datetime
+from datetime import timedelta
 from uuid import UUID
+from urllib.parse import quote
 
 from sqlalchemy import Select
 from sqlalchemy import func
@@ -10,6 +14,7 @@ from sqlalchemy import or_
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.auth.security import create_pdf_download_token
 from app.modules.library.models import Article
 from app.modules.library.models import LibraryItem
 from app.modules.library.models import PDFDocument
@@ -367,7 +372,16 @@ async def _pdf_metadata(
     expires_at = None
     file_available = stored_file is not None and stored_file.deleted_at is None
     if include_download_url and stored_file is not None and file_available:
-        download_url = f"{settings.api_v1_prefix}/library/pdfs/{item.id}/file"
+        token = create_pdf_download_token(
+            user_id=item.user_id,
+            item_id=item.id,
+            expires_seconds=settings.storage_presigned_expires_seconds,
+        )
+        download_url = (
+            f"{settings.api_v1_prefix}/library/pdfs/{item.id}/file"
+            f"?downloadToken={quote(token)}"
+        )
+        expires_at = datetime.now(UTC) + timedelta(seconds=settings.storage_presigned_expires_seconds)
     return PDFMetadata(
         file_name=stored_file.original_file_name if stored_file is not None else item.title,
         original_file_name=stored_file.original_file_name if stored_file is not None else None,
