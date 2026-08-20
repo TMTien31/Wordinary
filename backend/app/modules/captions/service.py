@@ -8,6 +8,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.integrations.youtube.client import get_captions
 from app.integrations.youtube.client import get_video_metadata
+from app.integrations.youtube.client import yt_dlp_cookie_status
 from app.integrations.youtube.client import yt_dlp_version
 from app.modules.captions.schemas import CaptionTrackResponse
 from app.modules.captions.schemas import VideoInfoResponse
@@ -15,11 +16,12 @@ from app.modules.captions.schemas import VideoInfoResponse
 
 class CaptionService:
     async def healthcheck(self) -> dict[str, object]:
+        cookies = yt_dlp_cookie_status()
         try:
             version = await run_in_threadpool(yt_dlp_version)
         except RuntimeError as exc:
-            return {"ok": False, "yt_dlp": None, "error": str(exc)}
-        return {"ok": True, "yt_dlp": version}
+            return {"ok": False, "yt_dlp": None, "cookies": cookies, "error": str(exc)}
+        return {"ok": True, "yt_dlp": version, "cookies": cookies}
 
     async def fetch_video_info(self, *, url: str) -> VideoInfoResponse:
         try:
@@ -53,9 +55,19 @@ def _runtime_status(exc: Exception) -> int:
 def _runtime_detail(exc: Exception) -> str:
     detail = str(exc)
     if "sign in to confirm" in detail.casefold() or "not a bot" in detail.casefold():
+        cookies = yt_dlp_cookie_status()
+        if not cookies["configured"]:
+            return "YouTube requires cookies, but WORDINARY_COOKIES_FILE is not configured."
+        if not cookies["exists"]:
+            return f"YouTube requires cookies, but the container cannot find {cookies['path']}."
+        if not cookies["readable"]:
+            return f"YouTube requires cookies, but the container cannot read {cookies['path']}."
+        if int(cookies["size_bytes"]) <= 0:
+            return f"YouTube requires cookies, but {cookies['path']} is empty."
         return (
-            "YouTube is asking this server to prove it is not a bot. "
-            "Export YouTube cookies to youtube-cookies/cookies.txt on the server, then redeploy/restart."
+            "YouTube rejected the cookies currently mounted in the server. "
+            "Export a fresh YouTube cookies.txt from the browser session that can play this video, "
+            "replace youtube-cookies/cookies.txt, then restart the API."
         )
     return detail
 

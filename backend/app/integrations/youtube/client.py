@@ -183,6 +183,28 @@ def yt_dlp_version() -> str:
     return str(getattr(getattr(yt_dlp, "version", None), "__version__", "installed"))
 
 
+def yt_dlp_cookie_status() -> dict[str, object]:
+    cookies_file = os.getenv("WORDINARY_COOKIES_FILE", "").strip()
+    if not cookies_file:
+        return {
+            "configured": False,
+            "path": "",
+            "exists": False,
+            "readable": False,
+            "writable": False,
+            "size_bytes": 0,
+        }
+    exists = os.path.isfile(cookies_file)
+    return {
+        "configured": True,
+        "path": cookies_file,
+        "exists": exists,
+        "readable": os.access(cookies_file, os.R_OK) if exists else False,
+        "writable": os.access(cookies_file, os.W_OK) if exists else False,
+        "size_bytes": os.path.getsize(cookies_file) if exists else 0,
+    }
+
+
 def get_video_metadata(url: str) -> dict[str, Any]:
     url = validate_youtube_url(url)
     info = extract_video_info(url)
@@ -385,4 +407,4 @@ def basic_metadata(info: dict[str, Any], original_url: str) -> dict[str, Any]:
     }
 
 
-__all__ = ["get_captions", "get_video_metadata", "yt_dlp_version"]
+__all__ = ["get_captions", "get_video_metadata", "yt_dlp_cookie_status", "yt_dlp_version"]

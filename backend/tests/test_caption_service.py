@@ -3,7 +3,20 @@ from __future__ import annotations
 from app.modules.captions import service
 
 
-def test_runtime_detail_summarizes_youtube_bot_check() -> None:
+def test_runtime_detail_summarizes_youtube_bot_check(monkeypatch) -> None:
+    monkeypatch.setattr(
+        service,
+        "yt_dlp_cookie_status",
+        lambda: {
+            "configured": True,
+            "path": "/run/wordinary/youtube-cookies/cookies.txt",
+            "exists": True,
+            "readable": True,
+            "writable": True,
+            "size_bytes": 200,
+        },
+    )
+
     detail = service._runtime_detail(
         RuntimeError(
             "yt-dlp failed to fetch video metadata: ERROR: [youtube] abc: "
@@ -12,6 +25,7 @@ def test_runtime_detail_summarizes_youtube_bot_check() -> None:
     )
 
     assert detail == (
-        "YouTube is asking this server to prove it is not a bot. "
-        "Export YouTube cookies to youtube-cookies/cookies.txt on the server, then redeploy/restart."
+        "YouTube rejected the cookies currently mounted in the server. "
+        "Export a fresh YouTube cookies.txt from the browser session that can play this video, "
+        "replace youtube-cookies/cookies.txt, then restart the API."
     )
