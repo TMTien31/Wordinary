@@ -33,7 +33,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      - ${YOUTUBE_COOKIES_DIR:-./youtube-cookies}:/run/wordinary/youtube-cookies:ro
+      - ${YOUTUBE_COOKIES_DIR:-./youtube-cookies}:/run/wordinary/youtube-cookies
     depends_on:
       db:
         condition: service_healthy

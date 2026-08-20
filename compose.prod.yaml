@@ -32,7 +32,7 @@ services:
     environment:
       WORDINARY_COOKIES_FILE: ${WORDINARY_COOKIES_FILE:-/run/wordinary/youtube-cookies/cookies.txt}
     volumes:
-      - ${YOUTUBE_COOKIES_DIR:-./youtube-cookies}:/run/wordinary/youtube-cookies:ro
+      - ${YOUTUBE_COOKIES_DIR:-./youtube-cookies}:/run/wordinary/youtube-cookies
     depends_on:
       db:
         condition: service_healthy
