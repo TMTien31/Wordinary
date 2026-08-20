@@ -75,6 +75,14 @@ jobs:
           docker image inspect wordinary-frontend:latest \
             --format 'Platform: {{.Os}}/{{.Architecture}}'
 
+      - name: Verify backend runtime dependencies
+        run: |
+          docker run --rm wordinary-api:latest sh -lc '
+            which deno
+            deno --version
+            python -m yt_dlp --version
+          '
+
       - name: Tag Docker images
         id: tag
         run: |
@@ -173,9 +181,24 @@ jobs:
           test "$(git rev-parse HEAD)" = "${DEPLOY_COMMIT}"
 
           IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml pull
-          IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml up -d --remove-orphans --wait --wait-timeout 120
+          IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml up -d --remove-orphans --force-recreate --wait --wait-timeout 120
 
-          docker compose --env-file .env -f compose.prod.yaml ps
+          IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml ps
+
+          IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml exec -T api sh -lc '
+            which deno
+            deno --version
+            python -m yt_dlp --version
+            test -n "${WORDINARY_COOKIES_FILE}"
+            test -s "${WORDINARY_COOKIES_FILE}"
+          '
+
+          API_CONTAINER="$(IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml ps -q api)"
+          FRONTEND_CONTAINER="$(IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml ps -q frontend)"
+          API_IMAGE="$(docker inspect "${API_CONTAINER}" --format '{{.Config.Image}}')"
+          FRONTEND_IMAGE="$(docker inspect "${FRONTEND_CONTAINER}" --format '{{.Config.Image}}')"
+          test "${API_IMAGE}" = "ghcr.io/tmtien31/wordinary-api:${IMAGE_TAG}" || (echo "API is running ${API_IMAGE}, expected tag ${IMAGE_TAG}" >&2; exit 1)
+          test "${FRONTEND_IMAGE}" = "ghcr.io/tmtien31/wordinary-frontend:${IMAGE_TAG}" || (echo "Frontend is running ${FRONTEND_IMAGE}, expected tag ${IMAGE_TAG}" >&2; exit 1)
 
           curl --fail --silent --show-error http://127.0.0.1:5500/ >/dev/null
           REMOTE
