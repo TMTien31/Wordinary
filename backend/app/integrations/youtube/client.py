@@ -279,7 +279,7 @@ def yt_dlp_options() -> dict[str, Any]:
         },
     }
     cookies_file = os.getenv("WORDINARY_COOKIES_FILE", "").strip()
-    if cookies_file:
+    if cookies_file and os.path.isfile(cookies_file):
         options["cookiefile"] = cookies_file
     return options
 

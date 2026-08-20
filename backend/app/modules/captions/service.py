@@ -38,7 +38,7 @@ class CaptionService:
         except LookupError as exc:
             raise _http_error(status.HTTP_404_NOT_FOUND, str(exc)) from exc
         except (json.JSONDecodeError, RuntimeError) as exc:
-            raise _http_error(_runtime_status(exc), str(exc)) from exc
+            raise _http_error(_runtime_status(exc), _runtime_detail(exc)) from exc
         return CaptionTrackResponse(video_id=data.pop("id", None), **data)
 
 
@@ -48,6 +48,16 @@ def _runtime_status(exc: Exception) -> int:
         if "yt-dlp" in str(exc).casefold()
         else status.HTTP_502_BAD_GATEWAY
     )
+
+
+def _runtime_detail(exc: Exception) -> str:
+    detail = str(exc)
+    if "sign in to confirm" in detail.casefold() or "not a bot" in detail.casefold():
+        return (
+            "YouTube is asking this server to prove it is not a bot. "
+            "Export YouTube cookies to youtube-cookies/cookies.txt on the server, then redeploy/restart."
+        )
+    return detail
 
 
 def _http_error(status_code: int, detail: str) -> HTTPException:

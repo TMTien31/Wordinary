@@ -29,6 +29,10 @@ services:
         --workers ${API_WORKERS:-2}
     env_file:
       - ${APP_ENV_FILE:-.env}
+    environment:
+      WORDINARY_COOKIES_FILE: ${WORDINARY_COOKIES_FILE:-/run/wordinary/youtube-cookies/cookies.txt}
+    volumes:
+      - ${YOUTUBE_COOKIES_DIR:-./youtube-cookies}:/run/wordinary/youtube-cookies:ro
     depends_on:
       db:
         condition: service_healthy

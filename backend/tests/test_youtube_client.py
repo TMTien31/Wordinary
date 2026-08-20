@@ -64,6 +64,15 @@ def test_download_subtitle_track_uses_yt_dlp_urlopen(monkeypatch) -> None:
     assert created[0].response.closed is True
 
 
+def test_yt_dlp_options_uses_cookiefile_only_when_present(monkeypatch) -> None:
+    monkeypatch.setenv("WORDINARY_COOKIES_FILE", "/run/wordinary/youtube-cookies/cookies.txt")
+    monkeypatch.setattr(client.os.path, "isfile", lambda path: path.endswith("cookies.txt"))
+
+    options = client.yt_dlp_options()
+
+    assert options["cookiefile"] == "/run/wordinary/youtube-cookies/cookies.txt"
+
+
 def test_download_subtitle_with_yt_dlp_reads_written_file(monkeypatch) -> None:
     created: list[dict[str, Any]] = []
 

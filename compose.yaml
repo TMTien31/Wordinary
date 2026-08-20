@@ -28,10 +28,12 @@ services:
       STORAGE_BUCKET: ${STORAGE_BUCKET:-wordinary-dev}
       STORAGE_REGION: ${STORAGE_REGION:-us-east-1}
       STORAGE_PRESIGNED_EXPIRES_SECONDS: ${STORAGE_PRESIGNED_EXPIRES_SECONDS:-900}
+      WORDINARY_COOKIES_FILE: ${WORDINARY_COOKIES_FILE:-/run/wordinary/youtube-cookies/cookies.txt}
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - ${YOUTUBE_COOKIES_DIR:-./youtube-cookies}:/run/wordinary/youtube-cookies:ro
     depends_on:
       db:
         condition: service_healthy

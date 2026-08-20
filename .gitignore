@@ -41,6 +41,8 @@ ENV/
 .codex_tmp/
 .pytest-caption-temp/
 pytest-cache-files-*/
+cookies.txt
+youtube-cookies/
 
 # Frontend dependencies/build output
 node_modules/
