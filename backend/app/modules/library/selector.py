@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import UTC
-from datetime import datetime
-from datetime import timedelta
 from uuid import UUID
 
 from sqlalchemy import Select
@@ -36,7 +33,6 @@ from app.shared.enums import CaptionSource
 from app.shared.enums import LibraryItemType
 from app.shared.enums import ProcessingStatus
 from app.storage.models import StoredFile
-from app.storage.service import get_file_storage
 
 
 class LibrarySelector:
@@ -371,11 +367,7 @@ async def _pdf_metadata(
     expires_at = None
     file_available = stored_file is not None and stored_file.deleted_at is None
     if include_download_url and stored_file is not None and file_available:
-        download_url = await get_file_storage().create_download_url(
-            key=stored_file.storage_key,
-            expires_in=settings.storage_presigned_expires_seconds,
-        )
-        expires_at = datetime.now(UTC) + timedelta(seconds=settings.storage_presigned_expires_seconds)
+        download_url = f"{settings.api_v1_prefix}/library/pdfs/{item.id}/file"
     return PDFMetadata(
         file_name=stored_file.original_file_name if stored_file is not None else item.title,
         original_file_name=stored_file.original_file_name if stored_file is not None else None,

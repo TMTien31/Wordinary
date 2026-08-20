@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from uuid import UUID
+from urllib.parse import quote
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -8,6 +9,8 @@ from fastapi import File
 from fastapi import Form
 from fastapi import HTTPException
 from fastapi import UploadFile
+from fastapi.responses import Response
+from fastapi.responses import StreamingResponse
 from starlette import status
 
 from app.api.dependencies import CurrentUser
@@ -90,6 +93,28 @@ async def list_library(
     query: LibraryListQuery = Depends(),
 ) -> Page[LibraryItemSummary]:
     return await LibraryService(session).list_library(user_id=current_user.id, query=query)
+
+
+@router.get("/pdfs/{item_id}/file", response_class=Response)
+async def download_pdf_file(
+    item_id: UUID,
+    session: DbSession,
+    current_user: CurrentUser,
+) -> StreamingResponse:
+    download = await LibraryService(session).get_pdf_file(
+        item_id=item_id,
+        user_id=current_user.id,
+    )
+    file_name = quote(download.file_name or "document.pdf")
+    headers = {
+        "Content-Disposition": f"inline; filename*=UTF-8''{file_name}",
+        "Content-Length": str(download.size_bytes),
+    }
+    return StreamingResponse(
+        iter([download.content]),
+        media_type=download.mime_type or "application/pdf",
+        headers=headers,
+    )
 
 
 @router.get("/{item_id}", response_model=LibraryItemDetailResponse)

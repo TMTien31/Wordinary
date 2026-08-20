@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import re
 import uuid
+from dataclasses import dataclass
 from datetime import UTC
 from datetime import datetime
 from math import ceil
@@ -45,6 +46,14 @@ ARTICLE_IMPORT_METHODS = {
 }
 WORDS_PER_MINUTE = 220
 MAX_PDF_UPLOAD_BYTES = 100 * 1024 * 1024
+
+
+@dataclass(frozen=True)
+class PDFFileDownload:
+    content: bytes
+    file_name: str
+    mime_type: str
+    size_bytes: int
 
 
 class LibraryService:
@@ -272,6 +281,22 @@ class LibraryService:
         if detail is None:
             raise _not_found()
         return detail
+
+    async def get_pdf_file(self, *, item_id: UUID, user_id: UUID) -> PDFFileDownload:
+        stored_file = await self.repository.get_pdf_file(item_id, user_id)
+        if stored_file is None or stored_file.deleted_at is not None:
+            raise _not_found()
+
+        storage = get_file_storage()
+        if not await storage.exists(stored_file.storage_key):
+            raise _not_found()
+        content = await storage.read(stored_file.storage_key)
+        return PDFFileDownload(
+            content=content,
+            file_name=stored_file.original_file_name,
+            mime_type=stored_file.mime_type,
+            size_bytes=stored_file.size_bytes,
+        )
 
     async def get_article_detail(
         self,

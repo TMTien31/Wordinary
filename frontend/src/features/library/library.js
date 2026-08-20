@@ -144,12 +144,26 @@ async function openStoredVideoItem(item) {
   if (timestamp > 0) setTimeout(() => seekVideo(timestamp), 650);
 }
 
+function pdfDownloadOptions(downloadUrl = "") {
+  const token = getAuthToken();
+  const usesApi = downloadUrl.startsWith("/api/") || downloadUrl.startsWith(API_BASE_URL);
+  return token && usesApi ? { headers: { Authorization: `Bearer ${token}` } } : {};
+}
+
+function resolvePdfDownloadUrl(downloadUrl = "") {
+  if (downloadUrl.startsWith("/api/") && /^https?:\/\//i.test(API_BASE_URL)) {
+    return `${new URL(API_BASE_URL).origin}${downloadUrl}`;
+  }
+  return downloadUrl;
+}
+
 async function openStoredPdfItem(item) {
   state.pendingPdfLibraryId = item.id;
   if (item.storageSource === "api" && item.metadata?.downloadUrl) {
     try {
       setPdfLoading(true, state.language === "en" ? "Downloading PDF..." : "Đang tải PDF...");
-      const response = await fetch(item.metadata.downloadUrl);
+      const downloadUrl = resolvePdfDownloadUrl(item.metadata.downloadUrl);
+      const response = await fetch(downloadUrl, pdfDownloadOptions(item.metadata.downloadUrl));
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const bytes = new Uint8Array(await response.arrayBuffer());
       await openPdfBytes(bytes, item.metadata.fileName || item.title || "document.pdf", {

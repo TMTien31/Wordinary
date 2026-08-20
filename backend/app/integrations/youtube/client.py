@@ -259,6 +259,7 @@ def yt_dlp_options() -> dict[str, Any]:
         "skip_download": True,
         "noplaylist": True,
         "socket_timeout": 25,
+        "source_address": "0.0.0.0",
         "cachedir": False,
         "extract_flat": False,
         "http_headers": {
@@ -277,8 +278,11 @@ def yt_dlp_options() -> dict[str, Any]:
 
 def extract_video_info(url: str) -> dict[str, Any]:
     yt_dlp = import_yt_dlp()
-    with yt_dlp.YoutubeDL(yt_dlp_options()) as ydl:
-        info = ydl.extract_info(url, download=False)
+    try:
+        with yt_dlp.YoutubeDL(yt_dlp_options()) as ydl:
+            info = ydl.extract_info(url, download=False)
+    except Exception as exc:
+        raise RuntimeError(f"yt-dlp failed to fetch video metadata: {exc}") from exc
     if not isinstance(info, dict):
         raise RuntimeError("yt-dlp did not return valid metadata")
     return info
@@ -291,15 +295,24 @@ def download_subtitle_track(track: dict[str, Any]) -> str:
     }
     request = urllib.request.Request(track["url"], headers=headers)
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
+        yt_dlp = import_yt_dlp()
+        with yt_dlp.YoutubeDL(yt_dlp_options()) as ydl:
+            response = ydl.urlopen(request)
             declared_length = response.headers.get("Content-Length")
             if declared_length and int(declared_length) > MAX_SUBTITLE_BYTES:
                 raise RuntimeError("Subtitle track is too large")
-            body = response.read(MAX_SUBTITLE_BYTES + 1)
+            try:
+                body = response.read(MAX_SUBTITLE_BYTES + 1)
+            finally:
+                response.close()
     except urllib.error.HTTPError as exc:
         raise RuntimeError(f"YouTube rejected the subtitle track (HTTP {exc.code})") from exc
     except urllib.error.URLError as exc:
         raise RuntimeError("Could not connect to the YouTube subtitle track") from exc
+    except Exception as exc:
+        if isinstance(exc, RuntimeError):
+            raise
+        raise RuntimeError(f"yt-dlp failed to download the subtitle track: {exc}") from exc
 
     if len(body) > MAX_SUBTITLE_BYTES:
         raise RuntimeError("Subtitle track exceeded the size limit")
