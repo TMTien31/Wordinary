@@ -1,28 +1,24 @@
-# Wordinary v7 Refactored
+# Wordinary
 
-This package separates the current browser app from the planned FastAPI backend.
+Wordinary is a language-learning app for reading articles, PDFs, and YouTube videos with saved vocabulary, review sessions, and progress tracking.
 
-- `frontend/`: compatibility-first Vanilla JS frontend extracted from Wordinary v7.
-- `backend/`: FastAPI modular-monolith skeleton for API and database work.
-- `tools/reference_server/`: temporary local server and YouTube caption bridge.
-- `scripts/`: repo-level smoke/maintenance scripts.
+The app is currently a Docker Compose deployment with:
 
-Backend schema source of truth: `backend/SCHEMAS.md`.
+- `frontend/`: static Vanilla JS frontend served by nginx.
+- `backend/`: FastAPI modular monolith with PostgreSQL, MinIO/S3 storage, and yt-dlp caption integration.
+- `scripts/`: repository smoke checks and local E2E helpers.
 
-## Run The Current Frontend
+Backend schema notes live in `backend/SCHEMAS.md`.
+
+## Run Locally
+
+Create a local environment file if needed:
 
 ```bash
-uv pip install -r tools/reference_server/requirements.txt
-python tools/reference_server/server.py
+cp .env.example .env
 ```
 
-Open `http://127.0.0.1:8787/` if the browser does not open automatically.
-Do not open `frontend/index.html` through `file://`; YouTube embeds need a normal HTTP origin/referrer.
-
-## Run With Docker Compose
-
-Optional: create `.env` from `.env.example` if you want to override defaults.
-Then run:
+Start the full stack:
 
 ```bash
 docker compose up --build
@@ -32,23 +28,59 @@ Default development ports:
 
 - Frontend: `http://localhost:5500`
 - FastAPI: `http://localhost:8000`
-- Postgres: `db:5432` inside Docker, `localhost:5432` from the host
+- API health: `http://localhost:8000/health`
+- MinIO API: `http://localhost:9000`
+- MinIO console: `http://localhost:9001`
 
-## Verify
+Do not open `frontend/index.html` through `file://`; PDF.js, API calls, and YouTube embeds expect a normal HTTP origin.
 
-```bash
-python scripts/verify_structure.py
+## YouTube Captions
+
+YouTube may ask the server to prove it is not a bot. For videos that require authentication, export YouTube cookies from a browser session that can play the video and place them at:
+
+```text
+youtube-cookies/cookies.txt
 ```
 
-The smoke script checks frontend asset references, JavaScript syntax, CSS imports,
-and the reference server syntax.
+The path is ignored by Git. Docker Compose mounts it into the API container as:
 
-## Notes
+```text
+/run/wordinary/youtube-cookies/cookies.txt
+```
 
-The frontend still uses ordered `defer` scripts to preserve the original shared
-scope and localStorage compatibility. The next safe migration is to introduce
-explicit ES modules feature by feature, beginning with pure utilities, storage
-adapters, and repositories.
+The API image includes yt-dlp and Deno so yt-dlp can solve YouTube JavaScript challenges.
 
-The embedded Base64 MP4 and PDF were extracted to real files under
-`frontend/public/demo`.
+## Verify Locally
+
+Install backend dependencies, then run:
+
+```bash
+python -m pip install ./backend
+python -m pytest backend/tests
+python scripts/verify_source_encoding.py
+python scripts/verify_structure.py
+python scripts/verify_frontend_contracts.py
+python scripts/verify_i18n.py
+```
+
+The browser E2E flow is intentionally separate because it needs a running stack and Playwright browser dependencies:
+
+```bash
+python -m pip install -r scripts/requirements-e2e.txt
+python scripts/e2e_main_flow.py
+```
+
+## Production
+
+Production uses `compose.prod.yaml` and images published by `.github/workflows/deploy-production.yml`.
+
+Before deploying a server, create `.env` from `env.prod.example` and replace every placeholder secret. The backend refuses to start with production defaults or placeholder values when `ENVIRONMENT=production`.
+
+Minimum production checks:
+
+- `.env` exists on the server and uses real database/storage/auth secrets.
+- `youtube-cookies/cookies.txt` exists, is non-empty, and is readable by the API container.
+- Postgres and MinIO volumes are backed up.
+- CI passes the quality gate before image build and deployment.
+
+More operational notes are in `docs/PRODUCTION_RUNBOOK.md`.
