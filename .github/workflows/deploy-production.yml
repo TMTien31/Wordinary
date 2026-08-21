@@ -215,8 +215,8 @@ jobs:
           test "$(git rev-parse HEAD)" = "${DEPLOY_COMMIT}"
 
           IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml pull
-          IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml run --rm --no-deps api \
-            python -c 'from app.core.config import settings; print(f"Production config OK: {settings.environment}")'
+          IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml run --rm --no-deps -T api \
+            python -c 'from app.core.config import settings; print(f"Production config OK: {settings.environment}")' </dev/null
           IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml up -d --remove-orphans --force-recreate --wait --wait-timeout 120
 
           IMAGE_TAG="${IMAGE_TAG}" docker compose --env-file .env -f compose.prod.yaml ps
