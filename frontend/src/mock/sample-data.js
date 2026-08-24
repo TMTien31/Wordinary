@@ -83,7 +83,3 @@ A useful ritual should remain light. When the routine becomes more complicated t
       sound: ["noto:speaker-high-volume", "noto:musical-note", "noto:headphone", "noto:studio-microphone"],
       time: ["noto:alarm-clock", "noto:hourglass-not-done", "noto:watch", "noto:calendar"]
     };
-
-
-    const DEMO_VIDEO_DATA = "/public/demo/demo-video.mp4";
-    const DEMO_VIDEO_CAPTIONS = [{"start": 0, "end": 4.349, "text": "Curiosity is one of the strongest tools for language learning."}, {"start": 4.799, "end": 11.767, "text": "When you meet a new word inside a story, your brain connects it with a scene, a feeling, and a purpose."}, {"start": 12.217, "end": 16.35, "text": "Pause for a moment and notice the sentence around the word."}, {"start": 16.8, "end": 23.049, "text": "Context often reveals whether a word describes an object, an action, or an idea."}, {"start": 23.499, "end": 27.051, "text": "Save only the expressions that feel useful to you."}, {"start": 27.501, "end": 33.393, "text": "Later, review the original sentence instead of memorizing an isolated translation."}, {"start": 33.843, "end": 40.378, "text": "Small moments of attention can gradually build a vocabulary that feels natural and personal."}];

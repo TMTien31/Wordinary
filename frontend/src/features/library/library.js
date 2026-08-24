@@ -135,9 +135,8 @@ function renderLibraryOverview() {
 async function openStoredVideoItem(item) {
   videoState.libraryItemId = item.id;
   const url = item.metadata?.url || item.sourceUrl || "";
-  $("#videoUrlInput").value = url === "wordinary://video-demo" ? "" : url;
-  if (item.metadata?.isDemo || url === "wordinary://video-demo") loadDemoVideo({ libraryItemId:item.id, restoreItem:item });
-  else await loadVideoFromUrl(url, { libraryItemId:item.id, restoreItem:item });
+  $("#videoUrlInput").value = url;
+  await loadVideoFromUrl(url, { libraryItemId:item.id, restoreItem:item });
   const storedCaptions = item.metadata?.captions;
   if ((!videoState.captions.length || item.metadata?.sourceLabel) && Array.isArray(storedCaptions) && storedCaptions.length) setCaptions(storedCaptions, item.metadata?.sourceLabel || "saved captions");
   const timestamp = Number(item.position?.timestamp) || 0;

@@ -1,6 +1,7 @@
 function attachEvents() {
   bindVideoEvents();
   bindPdfEvents();
+  bindDictationEvents();
   document.addEventListener("error", event => {
     if (event.target instanceof HTMLImageElement) handleIconError(event.target);
   }, true);
@@ -23,6 +24,7 @@ function attachEvents() {
     state.language = state.language === "vi" ? "en" : "vi";
     if ($("#libraryView").classList.contains("active")) renderLibraryOverview();
     else if ($("#reviewView").classList.contains("active")) renderReview();
+    else if ($("#dictationView").classList.contains("active")) renderDictation();
     else if ($("#cardsView").classList.contains("active")) renderCards($("#cardSearch")?.value || "");
     else applyLanguage();
     renderSettingsProfile();
@@ -193,6 +195,7 @@ function init() {
   attachEvents();
   renderCards();
   renderLibraryOverview();
+  initializeDictation();
   setView("isleView");
   updateVideoSavedCount();
   ensureVideoPolling();

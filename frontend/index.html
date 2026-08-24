@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0e1726" />
   <title>Wordinary</title>
-  <link rel="stylesheet" href="/src/styles/main.css?v=reader-highlight-1" />
+  <link rel="stylesheet" href="/src/styles/main.css?v=dictation-polish-1" />
 
 </head>
 <body>
@@ -32,12 +32,18 @@
         <div class="auth-preview-row"><span>curiosity</span><b>saved</b></div>
         <div class="auth-preview-row amber"><span>continue</span><b>review</b></div>
       </div>
+      <div class="auth-benefits" aria-label="Wordinary learning modes">
+        <span>Articles</span>
+        <span>PDFs</span>
+        <span>Videos</span>
+        <span>Reviews</span>
+      </div>
     </div>
 
     <div class="auth-card">
       <div class="auth-panel" id="authLoginPanel">
         <h2>Log in</h2>
-        <p>Use your Wordinary account to continue.</p>
+        <p>Pick up your saved words, reading progress, and reviews.</p>
         <form class="auth-form" id="authLoginForm">
           <label>Email<input name="email" type="email" autocomplete="email" required /></label>
           <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
@@ -48,13 +54,14 @@
 
       <div class="auth-panel is-hidden" id="authSignupPanel">
         <h2>Create account</h2>
-        <p>Create an account and start syncing your reading progress.</p>
+        <p>Start a private library for the articles, PDFs, and videos you learn from.</p>
         <form class="auth-form" id="authSignupForm">
           <label>Name<input name="displayName" type="text" autocomplete="name" required minlength="1" maxlength="80" /></label>
           <label>Email<input name="email" type="email" autocomplete="email" required /></label>
           <label>Password<input name="password" type="password" autocomplete="new-password" required minlength="8" /></label>
           <button class="auth-submit" type="submit">Create account</button>
         </form>
+        <div class="auth-form-note">Use at least 8 characters. You can change this later from Settings.</div>
         <div class="auth-switch">Already have an account? <button type="button" id="showLogin">Log in</button></div>
       </div>
       <div class="auth-status" id="authStatus" role="status" aria-live="polite"></div>
@@ -88,6 +95,7 @@
         <button class="nav-btn" data-view="readerView"><span class="nav-icon">✦</span><span class="nav-text">Read</span></button>
         <button class="nav-btn" data-view="pdfView"><span class="nav-icon">▧</span><span class="nav-text">PDF</span></button>
         <button class="nav-btn" data-view="videoView"><span class="nav-icon">▶</span><span class="nav-text">Video</span></button>
+        <button class="nav-btn" data-view="dictationView"><span class="nav-icon">⌁</span><span class="nav-text">Dictation</span><span class="nav-count" id="navDictationCount">0</span></button>
       </nav>
 
       <div class="nav-label nav-label-spaced">System</div>
@@ -124,7 +132,6 @@
       <section class="view active" id="isleView">
         <div class="page-heading isle-heading">
           <div>
-            <div class="eyebrow">Your learning world</div>
             <h1>Your Isle</h1>
             <p>Every saved word and practice round grows this place. XP unlocks new parts of the island.</p>
           </div>
@@ -228,9 +235,8 @@
       <section class="view" id="settingsView">
         <div class="page-heading settings-heading">
           <div>
-            <div class="eyebrow">Wordinary system</div>
             <h1>Settings</h1>
-            <p>Manage your account, preferences, and learning services.</p>
+            <p>Manage your account, preferences, and learning tools.</p>
           </div>
         </div>
 
@@ -241,7 +247,7 @@
                 <span class="settings-icon profile-icon" aria-hidden="true">U</span>
                 <div>
                   <h2>User profile</h2>
-                  <p>Your account details and sync status.</p>
+                  <p>Your account details and reading history.</p>
                 </div>
               </div>
               <span class="settings-badge" id="settingsProfileStatus">active</span>
@@ -254,7 +260,6 @@
               </div>
             </div>
             <div class="profile-list">
-              <div class="profile-row"><span>User ID</span><strong id="settingsProfileId">-</strong></div>
               <div class="profile-row"><span>Created</span><strong id="settingsProfileCreated">-</strong></div>
               <div class="profile-row"><span>Updated</span><strong id="settingsProfileUpdated">-</strong></div>
             </div>
@@ -265,18 +270,16 @@
               <div>
                 <span class="settings-icon" aria-hidden="true">⌘</span>
                 <div>
-                  <h2>Learning Services</h2>
-                  <p>Status for translation, definitions, imagery, article import, and pronunciation.</p>
+                  <h2>Learning helpers</h2>
+                  <p>Tools Wordinary uses while you read, watch, and review.</p>
                 </div>
               </div>
-              <span class="settings-badge">MVP</span>
+              <span class="settings-badge">Enabled</span>
             </div>
-            <div class="api-list settings-api-list">
-              <div class="api-row"><span>Google Translate → MyMemory</span><span class="status">fallback</span></div>
-              <div class="api-row"><span>Free Dictionary</span><span class="status">ready</span></div>
-              <div class="api-row"><span>Iconify Icons</span><span class="status">ready</span></div>
-              <div class="api-row"><span>Jina URL Reader</span><span class="status">ready</span></div>
-              <div class="api-row"><span>Browser Speech</span><span class="status">local</span></div>
+            <div class="settings-helper-list">
+              <div><b>Translation and definitions</b><span>Available when you highlight words.</span></div>
+              <div><b>Memory images</b><span>Suggested icons or your own uploaded image.</span></div>
+              <div><b>Article, PDF, and video support</b><span>Import content, save words, and review them together.</span></div>
             </div>
           </section>
         </div>
@@ -287,7 +290,6 @@
         <div id="libraryOverview">
           <div class="page-heading library-heading">
             <div>
-              <div class="eyebrow">All your learning, one place</div>
               <h1>Library</h1>
               <p>Articles, PDFs, and videos live in one place. Choose content and Wordinary will open the right learning space.</p>
             </div>
@@ -296,7 +298,7 @@
 
           <section class="continue-learning-section" id="continueLearningSection">
             <div class="section-heading-inline">
-              <div><span class="eyebrow">Pick up where you left off</span><h2>Continue learning</h2></div>
+              <div><h2>Continue learning</h2></div>
               <small>Up to 3 recent items</small>
             </div>
             <div class="continue-learning-grid" id="continueLearningGrid"></div>
@@ -365,12 +367,47 @@
         <div class="review-shell" id="reviewShell"></div>
       </section>
 
+      <section class="view" id="dictationView">
+        <div class="page-heading dictation-heading">
+          <div>
+            <h1>Dictation</h1>
+            <p>Hear a caption segment, type the full context, and move forward when the line is correct.</p>
+          </div>
+          <div class="dictation-heading-actions">
+            <button class="tool-btn ghost" id="dictationUseCurrentVideo"><span>▶</span><span>Use current video</span></button>
+            <button class="tool-btn primary" data-view="videoView"><span>＋</span><span>Add video</span></button>
+          </div>
+        </div>
+
+        <div class="dictation-source-bar">
+          <label class="dictation-source-select"><span>Source</span><select id="dictationSourceSelect" aria-label="Choose dictation source"></select></label>
+          <div class="dictation-options" role="group" aria-label="Dictation options">
+            <label><span>Length</span><select id="dictationLength"><option value="short">Short</option><option value="normal" selected>Normal</option><option value="long">Long</option></select></label>
+            <label><span>Check</span><select id="dictationMode"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="strict">Strict</option></select></label>
+          </div>
+        </div>
+
+        <div class="dictation-layout">
+          <div class="dictation-main-column">
+            <section class="dictation-stage" id="dictationStage"></section>
+            <div class="dictation-rail-card dictation-session-card">
+              <div class="dictation-rail-head"><h3>Session</h3><span id="dictationSourceStatus">voice</span></div>
+              <div class="dictation-stat-grid">
+                <div><strong id="dictationDoneCount">0</strong><span>mastered</span></div>
+                <div><strong id="dictationAccuracy">0%</strong><span>accuracy</span></div>
+                <div><strong id="dictationRetryCount">0</strong><span>retry</span></div>
+                <div><strong id="dictationReplayCount">0</strong><span>replays</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
 
 
       <section class="view" id="pdfView">
         <div class="page-heading pdf-heading">
           <div>
-            <div class="eyebrow">▧ Document immersion</div>
             <h1>PDF</h1>
             <p>Preserve the PDF’s layout, images, and typography while adding a selectable text layer for translating and saving words directly on the page.</p>
           </div>
@@ -385,7 +422,6 @@
               <p id="pdfOnboardingText">The file is processed directly in your browser. The canvas preserves the original page, while a transparent text layer lets you highlight without breaking the layout.</p>
               <div class="pdf-onboarding-actions">
                 <button class="tool-btn primary" id="pdfChooseFile">Choose PDF file</button>
-                <button class="tool-btn ghost" id="pdfLoadDemo">Open sample PDF</button>
               </div>
               <input id="pdfFileInput" type="file" accept="application/pdf,.pdf" hidden />
             </div>
@@ -399,8 +435,8 @@
 
         <section class="pdf-workspace is-hidden" id="pdfWorkspace">
           <div class="pdf-document-bar">
-            <div class="pdf-file-identity"><span class="pdf-file-icon">PDF</span><div><b id="pdfFileName">document.pdf</b><small id="pdfFileMeta">0 trang</small></div></div>
-            <div class="pdf-engine-state"><span id="pdfEngineDot"></span><span id="pdfEngineStatus">waiting for a document</span></div>
+            <div class="pdf-file-identity"><span class="pdf-file-icon">PDF</span><div><b id="pdfFileName">document.pdf</b><small id="pdfFileMeta">No document open</small></div></div>
+            <div class="pdf-engine-state"><span id="pdfEngineDot"></span><span id="pdfEngineStatus">Choose a PDF</span></div>
           </div>
 
           <div class="pdf-layout" id="pdfLayout">
@@ -439,16 +475,12 @@
             </section>
 
             <aside class="pdf-vocab-rail" id="pdfVocabRail">
-              <div class="pdf-vocab-head"><div><span class="eyebrow">Page vocabulary</span><h3>Words saved from this PDF</h3></div><span id="pdfSavedCount">0</span></div>
+              <div class="pdf-vocab-head"><div><h3>Words saved from this PDF</h3></div><span id="pdfSavedCount">0</span></div>
               <div class="pdf-active-word is-hidden" id="pdfActiveWordBox">
                 <div><b id="pdfActiveWord">—</b><small id="pdfOccurrenceLabel">0 trang</small></div>
                 <div><button id="pdfPrevOccurrence">↑</button><button id="pdfNextOccurrence">↓</button></div>
               </div>
               <div class="pdf-word-list" id="pdfWordList"></div>
-              <div class="pdf-help-card">
-                <b>Images stay images</b>
-                <p>PDF.js renders the entire page onto a canvas. The text layer is only a transparent overlay, so selecting words never removes images or structure.</p>
-              </div>
             </aside>
           </div>
         </section>
@@ -457,23 +489,21 @@
       <section class="view" id="videoView">
         <div class="page-heading video-lab-heading">
           <div>
-            <div class="eyebrow">▶ Immersive listening</div>
             <h1>Video</h1>
             <p>Watch a video, follow real-time captions, pause, then highlight text to translate and save it just like in the reader.</p>
           </div>
-          <button class="tool-btn primary" id="videoAddNew"><span>＋</span><span>Add video</span></button>
         </div>
 
         <div class="video-url-bar">
           <input class="video-url-input" id="videoUrlInput" type="url" placeholder="Paste a YouTube URL or a public MP4/WebM link..." />
-          <button class="video-demo-btn" id="loadVideoDemo">✨ Open demo</button>
           <button class="video-load-btn" id="loadVideoUrl">Analyze video</button>
+          <button class="video-dictation-btn" id="startVideoDictation"><span>⌁</span><span>Practice dictation</span></button>
         </div>
 
         <div class="video-workspace">
           <section class="video-player-card">
             <div class="video-card-head">
-              <div class="video-title-wrap"><h3 id="videoTitle">No video yet</h3><p id="videoMeta">Paste a URL or open the demo to start</p></div>
+              <div class="video-title-wrap"><h3 id="videoTitle">No video yet</h3><p id="videoMeta">Paste a URL to start</p></div>
               <div class="video-status" id="videoStatus"><span class="live-dot"></span><span id="videoStatusText">waiting</span></div>
             </div>
             <div class="video-stage" id="videoStage">
@@ -535,7 +565,7 @@
               </div>
             </div>
             <div class="caption-list" id="captionList">
-              <div class="caption-empty"><div><div class="big">💬</div><b>Captions will appear here</b><p>Open the demo, upload captions, paste a transcript, or fetch captions automatically.</p><div class="caption-empty-actions"><button class="caption-upload-btn" data-caption-upload>Upload caption</button><button class="caption-upload-btn" data-open-demo>Open demo</button></div></div></div>
+              <div class="caption-empty"><div><div class="big">💬</div><b>Captions will appear here</b><p>Analyze a video, upload captions, paste a transcript, or fetch captions automatically.</p><div class="caption-empty-actions"><button class="caption-upload-btn" data-caption-paste>Paste transcript</button><button class="caption-upload-btn" data-caption-upload>Upload caption</button></div></div></div>
             </div>
             <div class="caption-footer"><span id="captionHint">Pause the video, then highlight a word in the captions</span><button id="jumpActiveCue">Jump to active caption</button></div>
           </aside>
@@ -545,10 +575,9 @@
           <summary><div>Caption Sources</div><span>Use automatic captions, uploads, or pasted transcripts.</span></summary>
           <div class="caption-drawer-body">
             <div class="caption-setup-card">
-              <h4>Fetch Captions</h4>
-              <p>Wordinary looks for public captions without downloading the video.</p>
-              <input id="captionServerEndpoint" value="/api/v1/captions" aria-label="Caption service endpoint" readonly />
-              <div class="caption-setup-actions"><button id="retryCaptionServer">Fetch again</button><button class="secondary" id="checkCaptionServer">Check service</button></div>
+              <h4>Automatic Captions</h4>
+              <p>Wordinary will try public captions first. If YouTube blocks the request, paste or upload a transcript instead.</p>
+              <div class="caption-setup-actions"><button id="retryCaptionServer">Fetch again</button><button class="secondary" id="checkCaptionServer">Status</button></div>
             </div>
             <div class="caption-setup-card">
               <h4>Paste a Transcript</h4>
@@ -638,7 +667,7 @@
 
       <div class="tab-panel" id="urlPanel">
         <div class="field"><label>Article URL</label><input id="articleUrl" type="url" placeholder="https://example.com/article" /></div>
-        <div class="url-note">The demo uses Jina Reader to turn public pages into readable text. Pages with paywalls, bot protection, or access restrictions may not import successfully.</div>
+        <div class="url-note">URL import uses Jina Reader to turn public pages into readable text. Pages with paywalls, bot protection, or access restrictions may not import successfully.</div>
       </div>
 
       <div class="modal-actions"><button class="cancel-btn" id="cancelImport">Cancel</button><button class="import-btn" id="doImport">Import article</button></div>
@@ -705,15 +734,15 @@
   <div class="toast-stack" id="toastStack"></div>
 
   <script defer src="/src/core/storage.js"></script>
-  <script defer src="/src/mock/sample-data.js"></script>
-  <script defer src="/src/app/state.js?v=reader-highlight-1"></script>
+  <script defer src="/src/mock/sample-data.js?v=media-clean-1"></script>
+  <script defer src="/src/app/state.js?v=dictation-polish-1"></script>
   <script defer src="/src/shared/dom.js"></script>
-  <script defer src="/src/infrastructure/api/client.js?v=backend-source-1"></script>
+  <script defer src="/src/infrastructure/api/client.js?v=auth-proxy-1"></script>
   <script defer src="/src/infrastructure/api/auth-api.js"></script>
   <script defer src="/src/infrastructure/api/library-api.js?v=backend-source-1"></script>
   <script defer src="/src/infrastructure/api/vocabulary-api.js?v=vocab-api-1"></script>
   <script defer src="/src/infrastructure/api/review-api.js?v=review-api-1"></script>
-  <script defer src="/src/infrastructure/repositories/library-repository.js?v=reader-highlight-1"></script>
+  <script defer src="/src/infrastructure/repositories/library-repository.js?v=media-clean-1"></script>
   <script defer src="/src/core/persistence.js?v=reader-highlight-1"></script>
   <script defer src="/src/shared/ui/ui.js?v=reader-highlight-1"></script>
   <script defer src="/src/features/isle/isle.js?v=isle-1"></script>
@@ -724,13 +753,15 @@
   <script defer src="/src/features/practice/practice.js?v=vocab-api-1"></script>
   <script defer src="/src/features/vocabulary/card-editor.js?v=vocab-api-2"></script>
   <script defer src="/src/features/reader/importer.js?v=backend-source-1"></script>
-  <script defer src="/src/features/library/library.js?v=reader-highlight-1"></script>
-  <script defer src="/src/features/video/video.js?v=backend-source-4"></script>
-  <script defer src="/src/features/video/video-events.js"></script>
-  <script defer src="/src/features/pdf/pdf-state.js"></script>
-  <script defer src="/src/shared/i18n/translations.js?v=backend-source-3"></script>
+  <script defer src="/src/features/library/library.js?v=media-clean-1"></script>
+  <script defer src="/src/features/video/video.js?v=media-clean-1"></script>
+  <script defer src="/src/features/video/video-events.js?v=media-clean-1"></script>
+  <script defer src="/src/features/dictation/dictation-checker.js?v=dictation-polish-1"></script>
+  <script defer src="/src/features/dictation/dictation.js?v=dictation-polish-1"></script>
+  <script defer src="/src/features/pdf/pdf-state.js?v=media-clean-1"></script>
+  <script defer src="/src/shared/i18n/translations.js?v=dictation-polish-1"></script>
   <script defer src="/src/shared/i18n/i18n.js"></script>
-  <script defer src="/src/features/pdf/pdf.js?v=backend-source-2"></script>
+  <script defer src="/src/features/pdf/pdf.js?v=media-clean-1"></script>
   <script defer src="/src/app/bootstrap.js?v=reader-highlight-1"></script>
   <script defer src="/src/main.js"></script>
 </body>

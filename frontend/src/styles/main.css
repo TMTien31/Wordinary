@@ -6,6 +6,7 @@
 @import "../features/reader/reader.css";
 @import "../features/vocabulary/vocabulary.css";
 @import "../features/practice/practice.css";
+@import "../features/dictation/dictation.css";
 @import "../shared/ui/modal.css";
 @import "../features/video/video.css";
 @import "../styles/visual-system.css";

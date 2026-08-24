@@ -64,6 +64,13 @@
     .settings-api-list { gap: 0; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
     .settings-api-list .api-row { min-height: 54px; padding: 0 15px; background: var(--surface-2); font-size: 12px; }
     .settings-api-list .api-row + .api-row { border-top: 1px solid var(--line); }
+    .settings-helper-list { display: grid; gap: 9px; }
+    .settings-helper-list div {
+      min-height: 58px; display: grid; gap: 4px; padding: 12px 14px;
+      border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2);
+    }
+    .settings-helper-list b { font-size: 13px; }
+    .settings-helper-list span { color: var(--muted); font-size: 11px; line-height: 1.45; }
     .profile-settings-card { display: grid; gap: 18px; }
     .profile-icon { background: color-mix(in srgb, var(--wordinary-yellow) 20%, var(--surface-2)); color: var(--ink); }
     .profile-summary {

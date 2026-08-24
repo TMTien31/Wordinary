@@ -8,6 +8,8 @@ const videoState = {
   loopCue: false,
   pauseEachCue: false,
   pausedAtCue: -1,
+  manualCueLockIndex: -1,
+  manualCueLockUntil: 0,
   ready: false,
   youtubePlayer: null,
   youtubeApiPromise: null,
@@ -23,6 +25,33 @@ const videoState = {
   maxWatched: 0,
   libraryItemId: "",
   lastLibraryPersist: 0
+};
+
+const dictationState = {
+  itemId: "",
+  segments: [],
+  index: 0,
+  mode: "normal",
+  segmentLength: "normal",
+  autoNext: true,
+  showTranscript: false,
+  showAnswer: false,
+  hintLevel: 0,
+  checked: null,
+  progress: {},
+  replayTimer: null,
+  sourceStatus: "voice",
+  loading: false,
+  segmentSignature: "",
+  mediaUrl: "",
+  playbackRate: 1,
+  playbackGuard: null,
+  loopSegment: false,
+  loopTimer: null,
+  pendingReplay: false,
+  youtubePlayer: null,
+  youtubePlayerReady: false,
+  youtubeVideoId: ""
 };
 
 const state = {

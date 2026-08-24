@@ -1,10 +1,5 @@
     /* ───────────────────────── VIDEO LAB ───────────────────────── */
     .video-lab-heading { margin-bottom: 18px; }
-    .video-lab-heading .eyebrow {
-      display: inline-flex; align-items: center; gap: 7px; margin-bottom: 10px;
-      padding: 6px 10px; border-radius: 999px; background: var(--green-soft);
-      color: var(--green-dark); font-size: 10px; font-weight: 900; letter-spacing: .9px; text-transform: uppercase;
-    }
     .video-url-bar {
       display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 9px;
       padding: 11px; border: 1px solid var(--line); border-radius: 19px;
@@ -14,13 +9,16 @@
       min-width: 0; height: 45px; border: 0; outline: 0; border-radius: 13px;
       padding: 0 14px; background: var(--surface-2); color: var(--ink); font-size: 13px;
     }
-    .video-load-btn, .video-demo-btn {
+    .video-load-btn, .video-dictation-btn {
       border: 0; border-radius: 13px; padding: 0 17px; font-size: 12px; font-weight: 900; cursor: pointer;
       transition: transform .18s ease, opacity .18s ease;
     }
     .video-load-btn { background: var(--green); color: white; }
-    .video-demo-btn { background: var(--green-soft); color: var(--green-dark); }
-    .video-load-btn:hover, .video-demo-btn:hover { transform: translateY(-1px); }
+    .video-dictation-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      background: var(--surface-2); color: var(--ink); border: 1px solid var(--line);
+    }
+    .video-load-btn:hover, .video-dictation-btn:hover { transform: translateY(-1px); }
     .video-load-btn:disabled { opacity: .55; cursor: wait; }
 
     .video-workspace {
@@ -156,8 +154,8 @@
       overscroll-behavior: contain;
     }
     .caption-row {
-      display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px; padding: 11px 10px;
-      border-radius: 14px; border: 1px solid transparent; transition: .18s ease; cursor: default;
+      display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; padding: 11px 10px;
+      border-radius: 14px; border: 1px solid transparent; transition: .18s ease; cursor: pointer;
     }
     .caption-row + .caption-row { margin-top: 3px; }
     .caption-row:hover { background: var(--surface-2); }
@@ -167,8 +165,9 @@
     }
     .caption-time-btn {
       align-self: start; border: 0; background: var(--surface-3); color: var(--muted); cursor: pointer;
-      border-radius: 9px; padding: 5px 6px; font-size: 9px; font-weight: 900; font-variant-numeric: tabular-nums;
+      width: 100%; border-radius: 9px; padding: 5px 6px; font-size: 9px; font-weight: 900; font-variant-numeric: tabular-nums;
     }
+    .caption-time-btn:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
     .caption-row.active .caption-time-btn { background: color-mix(in srgb, var(--green) 15%, var(--surface)); color: var(--green-dark); }
     .caption-text { font-family: "Newsreader", Georgia, serif; font-size: 15px; line-height: 1.5; user-select: text; }
     .caption-translation { display: block; margin-top: 5px; color: var(--muted); font-family: Inter, sans-serif; font-size: 10px; line-height: 1.45; }

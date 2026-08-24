@@ -1,4 +1,3 @@
-const PDF_DEMO_URL = "/public/demo/demo-document.pdf";
 const pdfState = {
   pdfjs: null,
   doc: null,

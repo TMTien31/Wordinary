@@ -402,7 +402,6 @@ function apiDetailToVideoItem(detail = {}) {
       captionCount: Number(metadata.captionCount) || 0,
       captions: Array.isArray(metadata.captions) ? metadata.captions : [],
       sourceLabel: metadata.sourceLabel || "",
-      isDemo: Boolean(metadata.isDemo),
       savedWordCount: Number(detail.savedWordCount) || 0
     }
   });
@@ -436,8 +435,7 @@ function currentVideoApiPayload() {
     thumbnailUrl: youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : null,
     embeddable: videoState.embedAllowed,
     sourceLabel: videoState.sourceLabel || "",
-    captions: videoCaptionsForApi(),
-    isDemo: videoState.url === "wordinary://video-demo"
+    captions: videoCaptionsForApi()
   };
 }
 
@@ -453,8 +451,7 @@ async function saveCurrentVideoToApi() {
         thumbnailUrl: payload.thumbnailUrl,
         embeddable: payload.embeddable,
         sourceLabel: payload.sourceLabel,
-        captions: payload.captions,
-        isDemo: payload.isDemo
+        captions: payload.captions
       })
     : await libraryApiCreateVideo(payload);
   const item = upsertApiVideoDetail(detail);
@@ -483,8 +480,7 @@ function videoApiPayloadFromLibraryItem(item = {}) {
     thumbnailUrl: item.thumbnailUrl || null,
     embeddable: metadata.embeddable ?? null,
     sourceLabel: metadata.sourceLabel || "",
-    captions,
-    isDemo: Boolean(metadata.isDemo)
+    captions
   };
 }
 
@@ -530,8 +526,7 @@ function persistCurrentVideoToLibrary(touch = false) {
       duration,
       captionCount: videoState.captions.length,
       captions,
-      sourceLabel: videoState.sourceLabel || "",
-      isDemo: videoState.url === "wordinary://video-demo"
+      sourceLabel: videoState.sourceLabel || ""
     }
   }, touch);
   videoState.libraryItemId = item.id;

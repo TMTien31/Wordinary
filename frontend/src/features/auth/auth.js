@@ -145,7 +145,7 @@ function renderSettingsProfile() {
   $("#settingsProfileName").textContent = name;
   $("#settingsProfileEmail").textContent = email;
   $("#settingsProfileStatus").textContent = user?.status || "signed out";
-  $("#settingsProfileId").textContent = user?.id || "-";
+  if ($("#settingsProfileId")) $("#settingsProfileId").textContent = user?.id || "-";
   $("#settingsProfileCreated").textContent = formatProfileDate(user?.createdAt);
   $("#settingsProfileUpdated").textContent = user?.updatedAt ? formatProfileDate(user.updatedAt) : "-";
 }

@@ -1,4 +1,4 @@
-function hashPdfBytes(bytes, name = "document") {
+﻿function hashPdfBytes(bytes, name = "document") {
   let hash = 2166136261;
   const step = Math.max(1, Math.floor(bytes.length / 2048));
   for (let i = 0; i < bytes.length; i += step) { hash ^= bytes[i]; hash = Math.imul(hash, 16777619); }
@@ -27,7 +27,7 @@ function loadExternalScript(src, timeout = 12000) {
 
 async function ensurePdfJs() {
   if (pdfState.pdfjs) return pdfState.pdfjs;
-  setPdfEngineState("loading", state.language === "en" ? "loading PDF engine…" : "đang tải PDF engine…");
+  setPdfEngineState("loading", state.language === "en" ? "Preparing viewer..." : "Äang chuáº©n bá»‹ trÃ¬nh Ä‘á»c...");
   try {
     const modernImport = import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs");
     const pdfjs = await Promise.race([
@@ -36,7 +36,7 @@ async function ensurePdfJs() {
     ]);
     pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
     pdfState.pdfjs = pdfjs;
-    setPdfEngineState("ready", "PDF.js ready");
+    setPdfEngineState("ready", state.language === "en" ? "Viewer ready" : "TrÃ¬nh Ä‘á»c sáºµn sÃ ng");
     return pdfjs;
   } catch (modernError) {
     try {
@@ -45,10 +45,10 @@ async function ensurePdfJs() {
       if (!pdfjs) throw new Error("Legacy PDF.js did not initialize");
       pdfjs.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
       pdfState.pdfjs = pdfjs;
-      setPdfEngineState("ready", "PDF.js ready • fallback");
+      setPdfEngineState("ready", state.language === "en" ? "Viewer ready" : "TrÃ¬nh Ä‘á»c sáºµn sÃ ng");
       return pdfjs;
     } catch (legacyError) {
-      setPdfEngineState("error", state.language === "en" ? "PDF engine unavailable" : "không tải được PDF engine");
+      setPdfEngineState("error", state.language === "en" ? "Viewer unavailable" : "KhÃ´ng táº£i Ä‘Æ°á»£c trÃ¬nh Ä‘á»c");
       throw legacyError;
     }
   }
@@ -60,7 +60,7 @@ function setPdfEngineState(kind, text) {
   if ($("#pdfEngineStatus")) $("#pdfEngineStatus").textContent = text;
 }
 
-function setPdfLoading(show, text = "Đang render trang…") {
+function setPdfLoading(show, text = "Äang render trangâ€¦") {
   $("#pdfLoading")?.classList.toggle("is-hidden", !show);
   if ($("#pdfLoadingText")) $("#pdfLoadingText").textContent = text;
 }
@@ -68,16 +68,16 @@ function setPdfLoading(show, text = "Đang render trang…") {
 function setPdfOnboardingLoading(show, text = "") {
   if (show) $("#pdfOnboarding")?.classList.remove("is-hidden");
   $("#pdfDropzone")?.classList.toggle("loading", show);
-  ["#pdfChooseFile", "#pdfLoadDemo"].forEach(selector => {
+  ["#pdfChooseFile"].forEach(selector => {
     const button = $(selector);
     if (button) button.disabled = show;
   });
   if (show) {
-    $("#pdfOnboardingTitle").textContent = state.language === "en" ? "Opening your PDF" : "Đang mở PDF";
-    $("#pdfOnboardingText").textContent = text || (state.language === "en" ? "Downloading and preparing the document..." : "Đang tải và chuẩn bị tài liệu...");
+    $("#pdfOnboardingTitle").textContent = state.language === "en" ? "Opening your PDF" : "Äang má»Ÿ PDF";
+    $("#pdfOnboardingText").textContent = text || (state.language === "en" ? "Downloading and preparing the document..." : "Äang táº£i vÃ  chuáº©n bá»‹ tÃ i liá»‡u...");
   } else {
-    $("#pdfOnboardingTitle").textContent = state.language === "en" ? "Drop a document here" : "Thả tài liệu vào đây";
-    $("#pdfOnboardingText").textContent = state.language === "en" ? "The file is processed directly in your browser. The canvas preserves the original page, while a transparent text layer lets you highlight without breaking the layout." : "File được xử lý trực tiếp trong trình duyệt. Canvas giữ nguyên trang gốc, còn text layer trong suốt cho phép bôi đen mà không phá bố cục.";
+    $("#pdfOnboardingTitle").textContent = state.language === "en" ? "Drop a document here" : "Tháº£ tÃ i liá»‡u vÃ o Ä‘Ã¢y";
+    $("#pdfOnboardingText").textContent = state.language === "en" ? "The file is processed directly in your browser. The canvas preserves the original page, while a transparent text layer lets you highlight without breaking the layout." : "File Ä‘Æ°á»£c xá»­ lÃ½ trá»±c tiáº¿p trong trÃ¬nh duyá»‡t. Canvas giá»¯ nguyÃªn trang gá»‘c, cÃ²n text layer trong suá»‘t cho phÃ©p bÃ´i Ä‘en mÃ  khÃ´ng phÃ¡ bá»‘ cá»¥c.";
   }
 }
 
@@ -85,8 +85,8 @@ async function openPdfBytes(bytes, fileName = "document.pdf", options = {}) {
   if (!bytes?.length) return;
   const originalBytes = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   const durableBytes = originalBytes.slice();
-  setPdfOnboardingLoading(true, state.language === "en" ? "Preparing the document viewer..." : "Đang chuẩn bị trình đọc tài liệu...");
-  setPdfLoading(true, state.language === "en" ? "Opening PDF…" : "Đang mở PDF…");
+  setPdfOnboardingLoading(true, state.language === "en" ? "Preparing the document viewer..." : "Äang chuáº©n bá»‹ trÃ¬nh Ä‘á»c tÃ i liá»‡u...");
+  setPdfLoading(true, state.language === "en" ? "Opening PDFâ€¦" : "Äang má»Ÿ PDFâ€¦");
   try {
     const pdfjs = await ensurePdfJs();
     const loadingTask = pdfjs.getDocument({ data: originalBytes });
@@ -108,12 +108,12 @@ async function openPdfBytes(bytes, fileName = "document.pdf", options = {}) {
     setPdfOnboardingLoading(false);
     $("#pdfWorkspace").classList.remove("is-hidden");
     $("#pdfFileName").textContent = fileName;
-    $("#pdfFileMeta").textContent = `${doc.numPages} ${state.language === "en" ? "pages" : "trang"} ${existingItem?.storageSource === "api" ? "• cloud" : "• uploading"}`;
+    $("#pdfFileMeta").textContent = `${doc.numPages} ${state.language === "en" ? "pages" : "trang"} ${existingItem?.storageSource === "api" ? "â€¢ cloud" : "â€¢ uploading"}`;
     $("#pdfPageTotal").textContent = `/ ${doc.numPages}`;
     $("#pdfPageInput").max = doc.numPages;
-    $("#pdfOnboardingTitle").textContent = state.language === "en" ? "Drop a document here" : "Thả tài liệu vào đây";
-    $("#pdfOnboardingText").textContent = state.language === "en" ? "The file is saved to your library after it opens." : "File sẽ được lưu vào thư viện sau khi mở.";
-    $("#pdfChooseFile").textContent = state.language === "en" ? "Choose PDF file" : "Chọn file PDF";
+    $("#pdfOnboardingTitle").textContent = state.language === "en" ? "Drop a document here" : "Tháº£ tÃ i liá»‡u vÃ o Ä‘Ã¢y";
+    $("#pdfOnboardingText").textContent = state.language === "en" ? "The file is saved to your library after it opens." : "File sáº½ Ä‘Æ°á»£c lÆ°u vÃ o thÆ° viá»‡n sau khi má»Ÿ.";
+    $("#pdfChooseFile").textContent = state.language === "en" ? "Choose PDF file" : "Chá»n file PDF";
     const item = upsertPdfLibraryItem({
       id:existingItem?.storageSource === "api" ? pdfState.libraryItemId : pdfState.id,
       fileName,
@@ -132,7 +132,7 @@ async function openPdfBytes(bytes, fileName = "document.pdf", options = {}) {
     renderPdfWordRail();
     indexPdfDocumentText();
     if (!options.skipApiUpload && item.storageSource !== "api") {
-      showToast(state.language === "en" ? "Saving PDF" : "Đang lưu PDF", state.language === "en" ? "Adding the file to your library..." : "Đang thêm file vào thư viện...", "↑");
+      showToast(state.language === "en" ? "Saving PDF" : "Äang lÆ°u PDF", state.language === "en" ? "Adding the file to your library..." : "Äang thÃªm file vÃ o thÆ° viá»‡n...", "â†‘");
       savePdfToApi(durableBytes, fileName, doc.numPages, item)
         .then(apiItem => {
           if (!apiItem || apiItem.storageSource !== "api") {
@@ -145,7 +145,7 @@ async function openPdfBytes(bytes, fileName = "document.pdf", options = {}) {
           flushPdfProgressSync();
           updateStats();
           refreshAndRenderLibrary(250);
-          showToast(state.language === "en" ? "PDF saved" : "Đã lưu PDF", state.language === "en" ? "It is now available in your library." : "File đã sẵn sàng trong thư viện của bạn.", "✓");
+          showToast(state.language === "en" ? "PDF saved" : "ÄÃ£ lÆ°u PDF", state.language === "en" ? "It is now available in your library." : "File Ä‘Ã£ sáºµn sÃ ng trong thÆ° viá»‡n cá»§a báº¡n.", "âœ“");
         })
         .catch(error => {
           discardTransientLibraryItems();
@@ -154,21 +154,21 @@ async function openPdfBytes(bytes, fileName = "document.pdf", options = {}) {
           console.warn("Could not sync PDF", error);
           updateStats();
           if ($("#libraryView")?.classList.contains("active")) renderLibraryOverview();
-          showToast(state.language === "en" ? "PDF was not saved" : "PDF chưa được lưu", error.message || (state.language === "en" ? "Cloud sync failed. Try again later." : "Chưa đồng bộ lên server được. Hãy thử lại sau."), "!");
+          showToast(state.language === "en" ? "PDF was not saved" : "PDF chÆ°a Ä‘Æ°á»£c lÆ°u", error.message || (state.language === "en" ? "Cloud sync failed. Try again later." : "ChÆ°a Ä‘á»“ng bá»™ lÃªn server Ä‘Æ°á»£c. HÃ£y thá»­ láº¡i sau."), "!");
         });
     }
-    showToast(state.language === "en" ? "PDF ready" : "PDF đã sẵn sàng", state.language === "en" ? "Highlight text directly on the page to translate and save it." : "Bôi đen chữ trực tiếp trên trang để dịch và lưu từ.", "📄");
+    showToast(state.language === "en" ? "PDF ready" : "PDF Ä‘Ã£ sáºµn sÃ ng", state.language === "en" ? "Highlight text directly on the page to translate and save it." : "BÃ´i Ä‘en chá»¯ trá»±c tiáº¿p trÃªn trang Ä‘á»ƒ dá»‹ch vÃ  lÆ°u tá»«.", "ðŸ“„");
   } catch (error) {
     console.error(error);
-    showToast(state.language === "en" ? "Cannot open PDF" : "Không thể mở PDF", state.language === "en" ? "Try another file or run the app from a local web server." : "Hãy thử file khác hoặc chạy app bằng local web server.", "⚠️");
+    showToast(state.language === "en" ? "Cannot open PDF" : "KhÃ´ng thá»ƒ má»Ÿ PDF", state.language === "en" ? "Try another file or run the app from a local web server." : "HÃ£y thá»­ file khÃ¡c hoáº·c cháº¡y app báº±ng local web server.", "âš ï¸");
   } finally { setPdfLoading(false); setPdfOnboardingLoading(false); applyLanguage(); }
 }
 
 async function handlePdfFile(file) {
   if (!file) return;
-  if (!state.currentUser || !getAuthToken()) return showToast(state.language === "en" ? "Log in required" : "Cần đăng nhập", state.language === "en" ? "Sign in to save PDF files to your library." : "Đăng nhập để lưu PDF vào thư viện.", "!");
-  if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") return showToast("Định dạng chưa hỗ trợ", "Hãy chọn một file PDF.", "⚠️");
-  setPdfOnboardingLoading(true, state.language === "en" ? "Reading the selected file..." : "Đang đọc file đã chọn...");
+  if (!state.currentUser || !getAuthToken()) return showToast(state.language === "en" ? "Log in required" : "Cáº§n Ä‘Äƒng nháº­p", state.language === "en" ? "Sign in to save PDF files to your library." : "ÄÄƒng nháº­p Ä‘á»ƒ lÆ°u PDF vÃ o thÆ° viá»‡n.", "!");
+  if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") return showToast("Äá»‹nh dáº¡ng chÆ°a há»— trá»£", "HÃ£y chá»n má»™t file PDF.", "âš ï¸");
+  setPdfOnboardingLoading(true, state.language === "en" ? "Reading the selected file..." : "Äang Ä‘á»c file Ä‘Ã£ chá»n...");
   const bytes = new Uint8Array(await file.arrayBuffer());
   const restoreItem = getLibraryItem(state.pendingPdfLibraryId);
   await openPdfBytes(bytes, file.name, { libraryItemId:state.pendingPdfLibraryId || "", restoreItem });
@@ -201,7 +201,7 @@ async function renderPdfPage(pageNumber = pdfState.page) {
       renderPdfPage._saveTimer = setTimeout(() => { saveState(); updateStats(); }, 260);
     }
   }
-  setPdfLoading(true, state.language === "en" ? `Rendering page ${pageNumber}…` : `Đang render trang ${pageNumber}…`);
+  setPdfLoading(true, state.language === "en" ? `Rendering page ${pageNumber}â€¦` : `Äang render trang ${pageNumber}â€¦`);
   try {
     const page = await pdfState.doc.getPage(pageNumber);
     const scale = computePdfScale(page);
@@ -226,11 +226,11 @@ async function renderPdfPage(pageNumber = pdfState.page) {
     renderPdfTextLayer(textContent, viewport);
     $("#pdfPageInput").value = pageNumber;
     $("#pdfZoomReset").textContent = `${Math.round(scale * 100)}%`;
-    $("#pdfPageStatus").textContent = textContent.items.length ? (state.language === "en" ? `Page ${pageNumber} / ${pdfState.pageCount} • selectable text ready` : `Trang ${pageNumber} / ${pdfState.pageCount} • text layer sẵn sàng`) : (state.language === "en" ? `Page ${pageNumber} / ${pdfState.pageCount} • scanned page, try OCR` : `Trang ${pageNumber} / ${pdfState.pageCount} • trang scan, hãy thử OCR`);
+    $("#pdfPageStatus").textContent = textContent.items.length ? (state.language === "en" ? `Page ${pageNumber} / ${pdfState.pageCount} â€¢ text can be selected` : `Trang ${pageNumber} / ${pdfState.pageCount} â€¢ cÃ³ thá»ƒ chá»n chá»¯`) : (state.language === "en" ? `Page ${pageNumber} / ${pdfState.pageCount} â€¢ scanned page, try OCR` : `Trang ${pageNumber} / ${pdfState.pageCount} â€¢ trang scan, hÃ£y thá»­ OCR`);
     $$(".pdf-thumb").forEach(item => item.classList.toggle("active", Number(item.dataset.pdfPage) === pageNumber));
     const activeThumb = $(`.pdf-thumb[data-pdf-page="${pageNumber}"]`); activeThumb?.scrollIntoView({ block:"nearest" });
     if (pdfState.activeWord) highlightPdfWordOnPage(pdfState.activeWord, false);
-  } catch (error) { console.error(error); showToast("PDF render error", error.message || "Không thể render trang này.", "⚠️"); }
+  } catch (error) { console.error(error); showToast("PDF render error", error.message || "KhÃ´ng thá»ƒ render trang nÃ y.", "âš ï¸"); }
   finally { if (token === pdfState.renderToken) setPdfLoading(false); }
 }
 
@@ -337,10 +337,10 @@ async function indexPdfDocumentText() {
         pdfState.pageItems.set(number, content);
       } catch (_) {}
     }
-    if (number % 5 === 0) setPdfEngineState("ready", `${state.language === "en" ? "indexing" : "đang lập chỉ mục"} ${number}/${pdfState.pageCount}`);
+    if (number % 5 === 0) setPdfEngineState("ready", `${state.language === "en" ? "Reading pages" : "Äang Ä‘á»c trang"} ${number}/${pdfState.pageCount}`);
   }
   pdfState.indexing = false;
-  setPdfEngineState("ready", "PDF.js ready");
+  setPdfEngineState("ready", state.language === "en" ? "Viewer ready" : "TrÃ¬nh Ä‘á»c sáºµn sÃ ng");
   if (pdfState.activeWord) updatePdfWordPages(pdfState.activeWord);
 }
 
@@ -357,7 +357,7 @@ function renderPdfWordRail() {
   $("#pdfSavedCount").textContent = cards.length;
   const root = $("#pdfWordList");
   if (!cards.length) {
-    root.innerHTML = `<div class="pdf-word-empty">${state.language === "en" ? "No words saved from this PDF yet. Highlight text on the page to start a context collection." : "Chưa có từ nào được lưu từ PDF này. Hãy bôi đen chữ trên trang để bắt đầu bộ ngữ cảnh."}</div>`;
+    root.innerHTML = `<div class="pdf-word-empty">${state.language === "en" ? "No words saved from this PDF yet. Highlight text on the page to start a context collection." : "ChÆ°a cÃ³ tá»« nÃ o Ä‘Æ°á»£c lÆ°u tá»« PDF nÃ y. HÃ£y bÃ´i Ä‘en chá»¯ trÃªn trang Ä‘á»ƒ báº¯t Ä‘áº§u bá»™ ngá»¯ cáº£nh."}</div>`;
     return;
   }
   root.innerHTML = cards.map(card => `<button class="pdf-word-item ${pdfState.activeWord.toLowerCase() === card.word.toLowerCase() ? "active" : ""}" data-pdf-word="${escapeHtml(card.word)}"><img src="${iconUrl(card.icon)}" alt=""><span><b>${escapeHtml(card.word)}</b><small>${escapeHtml(card.translation || "")}</small></span><span>${Number.isFinite(card.sourcePage) ? `p.${card.sourcePage}` : "PDF"}</span></button>`).join("");
@@ -369,7 +369,7 @@ function updatePdfWordPages(word) {
   pdfState.wordPages = [...pdfState.pageTexts.entries()].filter(([,text]) => regex.test(text)).map(([page]) => page).sort((a,b)=>a-b);
   pdfState.wordPageIndex = Math.max(0, pdfState.wordPages.indexOf(pdfState.page));
   $("#pdfActiveWordBox").classList.toggle("is-hidden", !word);
-  $("#pdfActiveWord").textContent = word || "—";
+  $("#pdfActiveWord").textContent = word || "â€”";
   $("#pdfOccurrenceLabel").textContent = `${pdfState.wordPages.length} ${state.language === "en" ? "pages" : "trang"}`;
 }
 
@@ -428,7 +428,7 @@ async function handlePdfSelection() {
   };
   openSelectionPopup(range.getBoundingClientRect());
   loadSelectionData();
-  $("#pdfPageStatus").textContent = `${state.language === "en" ? "Selected" : "Đã chọn"} “${selected}” • ${state.language === "en" ? "page" : "trang"} ${pdfState.page}`;
+  $("#pdfPageStatus").textContent = `${state.language === "en" ? "Selected" : "ÄÃ£ chá»n"} â€œ${selected}â€ â€¢ ${state.language === "en" ? "page" : "trang"} ${pdfState.page}`;
 }
 
 async function ensureTesseract() {
@@ -447,7 +447,7 @@ async function ocrCurrentPdfPage() {
   const button = $("#pdfOcrPage"); button.disabled = true;
   try {
     const Tesseract = await ensureTesseract();
-    setPdfLoading(true, state.language === "en" ? "Loading local OCR…" : "Đang tải OCR cục bộ…");
+    setPdfLoading(true, state.language === "en" ? "Loading local OCRâ€¦" : "Äang táº£i OCR cá»¥c bá»™â€¦");
     const result = await Tesseract.recognize($("#pdfCanvas"), "eng+vie", { logger: message => {
       if (message.status === "recognizing text") setPdfLoading(true, `${state.language === "en" ? "OCR" : "OCR"} ${Math.round((message.progress || 0) * 100)}%`);
     }});
@@ -471,11 +471,11 @@ async function ocrCurrentPdfPage() {
       layer.appendChild(span);
     });
     pdfState.pageTexts.set(pdfState.page, result.data.text.replace(/\s+/g," ").trim());
-    $("#pdfPageStatus").textContent = state.language === "en" ? `Page ${pdfState.page} • OCR text layer ready` : `Trang ${pdfState.page} • OCR text layer sẵn sàng`;
-    showToast(state.language === "en" ? "OCR complete" : "OCR hoàn tất", state.language === "en" ? "This scanned page can now be highlighted." : "Trang scan này giờ đã có thể bôi đen.", "◎");
+    $("#pdfPageStatus").textContent = state.language === "en" ? `Page ${pdfState.page} â€¢ OCR text ready` : `Trang ${pdfState.page} â€¢ OCR Ä‘Ã£ sáºµn sÃ ng`;
+    showToast(state.language === "en" ? "OCR complete" : "OCR hoÃ n táº¥t", state.language === "en" ? "This scanned page can now be highlighted." : "Trang scan nÃ y giá» Ä‘Ã£ cÃ³ thá»ƒ bÃ´i Ä‘en.", "â—Ž");
   } catch (error) {
     console.error(error);
-    showToast(state.language === "en" ? "OCR failed" : "OCR chưa chạy được", state.language === "en" ? "Check your internet connection for the first model download." : "Kiểm tra mạng vì lần đầu cần tải model OCR.", "⚠️");
+    showToast(state.language === "en" ? "OCR failed" : "OCR chÆ°a cháº¡y Ä‘Æ°á»£c", state.language === "en" ? "Check your internet connection for the first model download." : "Kiá»ƒm tra máº¡ng vÃ¬ láº§n Ä‘áº§u cáº§n táº£i model OCR.", "âš ï¸");
   } finally { pdfState.ocrRunning = false; button.disabled = false; setPdfLoading(false); }
 }
 
@@ -483,19 +483,6 @@ function bindPdfEvents() {
   $("#pdfChooseFile").addEventListener("click", event => { event.stopPropagation(); $("#pdfFileInput").click(); });
   $("#pdfOpenAnother").addEventListener("click", () => $("#pdfFileInput").click());
   $("#pdfFileInput").addEventListener("change", () => handlePdfFile($("#pdfFileInput").files[0]));
-  $("#pdfLoadDemo").addEventListener("click", async event => {
-    event.stopPropagation();
-    state.pendingPdfLibraryId = null;
-    if (!state.currentUser || !getAuthToken()) return showToast(state.language === "en" ? "Log in required" : "Cần đăng nhập", state.language === "en" ? "Sign in to save PDF files to your library." : "Đăng nhập để lưu PDF vào thư viện.", "!");
-    try {
-      const response = await fetch(PDF_DEMO_URL);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      await openPdfBytes(new Uint8Array(await response.arrayBuffer()), "wordinary-context-demo.pdf");
-    } catch (error) {
-      console.error(error);
-      showToast(state.language === "en" ? "Could not open sample PDF" : "Không mở được PDF mẫu", state.language === "en" ? "Check that the demo asset is available." : "Kiểm tra file demo trong public/demo.", "⚠️");
-    }
-  });
   $("#pdfDropzone").addEventListener("click", () => $("#pdfFileInput").click());
   ["dragenter","dragover"].forEach(type => $("#pdfDropzone").addEventListener(type,event => { event.preventDefault(); $("#pdfDropzone").classList.add("drag"); }));
   ["dragleave","drop"].forEach(type => $("#pdfDropzone").addEventListener(type,event => { event.preventDefault(); $("#pdfDropzone").classList.remove("drag"); }));
@@ -507,7 +494,7 @@ function bindPdfEvents() {
   $("#pdfZoomOut").addEventListener("click", () => { pdfState.fitMode = "manual"; pdfState.scale = Math.max(.45, Number($("#pdfZoomReset").textContent.replace("%", "")) / 100 - .15); renderPdfPage(pdfState.page); });
   $("#pdfZoomReset").addEventListener("click", () => { pdfState.fitMode = "manual"; pdfState.scale = 1; renderPdfPage(pdfState.page); });
   $("#pdfFitWidth").addEventListener("click", () => { pdfState.fitMode = "width"; renderPdfPage(pdfState.page); });
-  $("#pdfToggleThumbs").addEventListener("click", () => { const collapsed = $("#pdfLayout").classList.toggle("thumbs-collapsed"); $("#pdfToggleThumbs").textContent = collapsed ? "›" : "‹"; requestAnimationFrame(() => pdfState.doc && renderPdfPage(pdfState.page)); });
+  $("#pdfToggleThumbs").addEventListener("click", () => { const collapsed = $("#pdfLayout").classList.toggle("thumbs-collapsed"); $("#pdfToggleThumbs").textContent = collapsed ? "â€º" : "â€¹"; requestAnimationFrame(() => pdfState.doc && renderPdfPage(pdfState.page)); });
   $("#pdfThumbnails").addEventListener("click", event => { const item = event.target.closest("[data-pdf-page]"); if (item) renderPdfPage(item.dataset.pdfPage); });
   $("#pdfTextLayer").addEventListener("mouseup", handlePdfSelection);
   $("#pdfTextLayer").addEventListener("touchend", handlePdfSelection);
@@ -518,3 +505,4 @@ function bindPdfEvents() {
   $("#pdfOcrPage").addEventListener("click", ocrCurrentPdfPage);
   let resizeTimer; window.addEventListener("resize", () => { if (!pdfState.doc || pdfState.fitMode !== "width" || !$("#pdfView").classList.contains("active")) return; clearTimeout(resizeTimer); resizeTimer = setTimeout(() => renderPdfPage(pdfState.page), 180); });
 }
+

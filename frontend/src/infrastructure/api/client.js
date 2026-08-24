@@ -1,8 +1,6 @@
 function resolveDefaultApiBaseUrl() {
-  const localHostnames = ["", "localhost", "127.0.0.1"];
-  return localHostnames.includes(window.location.hostname)
-    ? "http://localhost:8000/api/v1"
-    : "/api/v1";
+  if (window.location.protocol === "file:") return "http://localhost:8000/api/v1";
+  return "/api/v1";
 }
 
 const API_BASE_URL = window.WORDINARY_API_BASE_URL || resolveDefaultApiBaseUrl();

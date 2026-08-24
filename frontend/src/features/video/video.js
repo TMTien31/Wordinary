@@ -1,4 +1,4 @@
-/* ───────────────────────── VIDEO LAB LOGIC ───────────────────────── */
+﻿/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ VIDEO LAB LOGIC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function formatVideoTime(seconds = 0) {
   const safe = Math.max(0, Number(seconds) || 0);
   const h = Math.floor(safe / 3600);
@@ -14,7 +14,7 @@ function setVideoStatus(text, ready = false) {
 
 function setCaptionSource(label, ready = false) {
   videoState.sourceLabel = label;
-  $("#captionSourcePill").textContent = label || "chưa có caption";
+  $("#captionSourcePill").textContent = label || "chÆ°a cÃ³ caption";
   $("#captionSourcePill").classList.toggle("ready", ready);
 }
 
@@ -47,43 +47,43 @@ function showVideoEmbedNotice(reason = "file", videoId = "", url = "") {
   const closeBtn = $("#dismissVideoEmbedNotice");
 
   if (blocked) {
-    $(".video-embed-notice-icon", notice).textContent = "↗";
-    title.textContent = english ? "This video cannot be embedded" : "Video này không cho phép phát nhúng";
+    $(".video-embed-notice-icon", notice).textContent = "â†—";
+    title.textContent = english ? "This video cannot be embedded" : "Video nÃ y khÃ´ng cho phÃ©p phÃ¡t nhÃºng";
     text.textContent = english
       ? "YouTube Error 150 is the same as Error 101: the owner disabled playback in embedded players. Wordinary cannot override that setting. Your transcript is still available, and you can open YouTube at the selected timestamp or pair it with a local video file."
-      : "YouTube Error 150 giống Error 101: chủ video đã tắt quyền phát trong trình phát nhúng. Wordinary không thể vượt qua thiết lập này. Transcript vẫn dùng được; bạn có thể mở YouTube tại timestamp đang chọn hoặc ghép caption với file video có sẵn trên máy.";
-    detail.textContent = english ? "YouTube policy • Error 150 = embedding disabled" : "Chính sách YouTube • Error 150 = chủ video chặn embed";
+      : "YouTube Error 150 giá»‘ng Error 101: chá»§ video Ä‘Ã£ táº¯t quyá»n phÃ¡t trong trÃ¬nh phÃ¡t nhÃºng. Wordinary khÃ´ng thá»ƒ vÆ°á»£t qua thiáº¿t láº­p nÃ y. Transcript váº«n dÃ¹ng Ä‘Æ°á»£c; báº¡n cÃ³ thá»ƒ má»Ÿ YouTube táº¡i timestamp Ä‘ang chá»n hoáº·c ghÃ©p caption vá»›i file video cÃ³ sáºµn trÃªn mÃ¡y.";
+    detail.textContent = english ? "YouTube policy â€¢ Error 150 = embedding disabled" : "ChÃ­nh sÃ¡ch YouTube â€¢ Error 150 = chá»§ video cháº·n embed";
     copyBtn.hidden = true;
     cueBtn.hidden = false;
     localBtn.hidden = false;
     openBtn.classList.add("primary");
-    openBtn.textContent = english ? "Open on YouTube" : "Mở video trên YouTube";
-    cueBtn.textContent = english ? "Open at selected caption" : "Mở tại câu đang chọn";
-    localBtn.textContent = english ? "Use a local video file" : "Dùng file video trên máy";
-    closeBtn.textContent = english ? "Keep transcript only" : "Chỉ dùng transcript";
+    openBtn.textContent = english ? "Open on YouTube" : "Má»Ÿ video trÃªn YouTube";
+    cueBtn.textContent = english ? "Open at selected caption" : "Má»Ÿ táº¡i cÃ¢u Ä‘ang chá»n";
+    localBtn.textContent = english ? "Use a local video file" : "DÃ¹ng file video trÃªn mÃ¡y";
+    closeBtn.textContent = english ? "Keep transcript only" : "Chá»‰ dÃ¹ng transcript";
   } else {
-    $(".video-embed-notice-icon", notice).textContent = "⌁";
+    $(".video-embed-notice-icon", notice).textContent = "âŒ";
     title.textContent = english
       ? (code === "153" ? "YouTube rejected this embed (Error 153)" : "Run Wordinary through localhost for YouTube")
-      : (code === "153" ? "YouTube từ chối iframe này (Error 153)" : "YouTube cần Wordinary chạy qua localhost");
+      : (code === "153" ? "YouTube tá»« chá»‘i iframe nÃ y (Error 153)" : "YouTube cáº§n Wordinary cháº¡y qua localhost");
     text.textContent = english
       ? "YouTube requires an HTTP referrer or equivalent client identity. A page opened with file:// cannot provide it. Start the included Wordinary server, then open the localhost address."
-      : "YouTube yêu cầu HTTP Referer hoặc danh tính client tương đương. Trang mở bằng file:// không thể cung cấp thông tin đó. Hãy chạy server Wordinary đi kèm rồi mở địa chỉ localhost.";
+      : "YouTube yÃªu cáº§u HTTP Referer hoáº·c danh tÃ­nh client tÆ°Æ¡ng Ä‘Æ°Æ¡ng. Trang má»Ÿ báº±ng file:// khÃ´ng thá»ƒ cung cáº¥p thÃ´ng tin Ä‘Ã³. HÃ£y cháº¡y server Wordinary Ä‘i kÃ¨m rá»“i má»Ÿ Ä‘á»‹a chá»‰ localhost.";
     detail.textContent = "docker compose up -d --build  ->  http://localhost:5500/";
     copyBtn.hidden = false;
     cueBtn.hidden = true;
     localBtn.hidden = true;
     copyBtn.classList.add("primary");
     openBtn.classList.remove("primary");
-    copyBtn.textContent = english ? "Copy fallback command" : "Sao chép lệnh dự phòng";
-    openBtn.textContent = english ? "Open on YouTube" : "Mở video trên YouTube";
-    closeBtn.textContent = english ? "Close" : "Đóng thông báo";
+    copyBtn.textContent = english ? "Copy fallback command" : "Sao chÃ©p lá»‡nh dá»± phÃ²ng";
+    openBtn.textContent = english ? "Open on YouTube" : "Má»Ÿ video trÃªn YouTube";
+    closeBtn.textContent = english ? "Close" : "ÄÃ³ng thÃ´ng bÃ¡o";
   }
 
   notice.classList.remove("video-hidden");
   $("#videoPlaceholder")?.classList.add("video-hidden");
   $("#youtubeHost")?.classList.add("video-hidden");
-  setVideoStatus(blocked ? "Error 150" : (code === "153" ? "Error 153" : (english ? "localhost required" : "cần localhost")), false);
+  setVideoStatus(blocked ? "Error 150" : (code === "153" ? "Error 153" : (english ? "localhost required" : "cáº§n localhost")), false);
 }
 
 function hideVideoEmbedNotice() {
@@ -94,9 +94,9 @@ async function copyWordinaryServerCommand() {
   const command = "python tools/reference_server/server.py";
   try {
     await navigator.clipboard.writeText(command);
-    showToast(state.language === "en" ? "Command copied" : "Đã sao chép lệnh", command, "✓");
+    showToast(state.language === "en" ? "Command copied" : "ÄÃ£ sao chÃ©p lá»‡nh", command, "âœ“");
   } catch (_) {
-    window.prompt(state.language === "en" ? "Copy this command" : "Sao chép lệnh này", command);
+    window.prompt(state.language === "en" ? "Copy this command" : "Sao chÃ©p lá»‡nh nÃ y", command);
   }
 }
 
@@ -117,16 +117,16 @@ function openPendingYouTubeAtCue() {
 function useLocalVideoFile(file) {
   if (!file) return;
   if (!String(file.type || "").startsWith("video/")) {
-    showToast(state.language === "en" ? "Unsupported file" : "File chưa được hỗ trợ", state.language === "en" ? "Choose an MP4, WebM, OGG, or another browser-playable video file." : "Hãy chọn MP4, WebM, OGG hoặc định dạng video mà trình duyệt phát được.", "⚠️");
+    showToast(state.language === "en" ? "Unsupported file" : "File chÆ°a Ä‘Æ°á»£c há»— trá»£", state.language === "en" ? "Choose an MP4, WebM, OGG, or another browser-playable video file." : "HÃ£y chá»n MP4, WebM, OGG hoáº·c Ä‘á»‹nh dáº¡ng video mÃ  trÃ¬nh duyá»‡t phÃ¡t Ä‘Æ°á»£c.", "âš ï¸");
     return;
   }
   if (videoState.localVideoObjectUrl) URL.revokeObjectURL(videoState.localVideoObjectUrl);
   videoState.localVideoObjectUrl = URL.createObjectURL(file);
-  const previousTitle = videoState.title && videoState.title !== "Chưa có video" ? videoState.title : file.name;
-  mountNativeVideo(videoState.localVideoObjectUrl, `${previousTitle} • local`);
+  const previousTitle = videoState.title && videoState.title !== "ChÆ°a cÃ³ video" ? videoState.title : file.name;
+  mountNativeVideo(videoState.localVideoObjectUrl, `${previousTitle} â€¢ local`);
   videoState.embedBlocked = false;
   hideVideoEmbedNotice();
-  showToast(state.language === "en" ? "Local video connected" : "Đã ghép video trên máy", state.language === "en" ? "The existing transcript will follow this video's currentTime." : "Transcript hiện tại sẽ chạy theo currentTime của file này.", "▶️");
+  showToast(state.language === "en" ? "Local video connected" : "ÄÃ£ ghÃ©p video trÃªn mÃ¡y", state.language === "en" ? "The existing transcript will follow this video's currentTime." : "Transcript hiá»‡n táº¡i sáº½ cháº¡y theo currentTime cá»§a file nÃ y.", "â–¶ï¸");
 }
 
 function parseYouTubeId(value = "") {
@@ -215,7 +215,7 @@ function isVideoPlaying() {
 function playVideo() {
   if (!videoState.ready) return;
   if (videoState.type === "youtube") videoState.youtubePlayer?.playVideo?.();
-  else $("#nativeVideo").play().catch(() => showToast("Trình duyệt chặn autoplay", "Hãy nhấn nút Play một lần nữa.", "▶️"));
+  else $("#nativeVideo").play().catch(() => showToast("TrÃ¬nh duyá»‡t cháº·n autoplay", "HÃ£y nháº¥n nÃºt Play má»™t láº§n ná»¯a.", "â–¶ï¸"));
 }
 
 function pauseVideo() {
@@ -231,6 +231,34 @@ function seekVideo(seconds) {
   if (videoState.type === "youtube") videoState.youtubePlayer?.seekTo?.(target, true);
   else $("#nativeVideo").currentTime = target;
   updateVideoTimeline(true);
+}
+
+function lockManualCue(cue) {
+  videoState.manualCueLockIndex = Number.isFinite(cue?.index) ? cue.index : -1;
+  videoState.manualCueLockUntil = performance.now() + 900;
+}
+
+function seekToCaptionCue(cue, options = {}) {
+  if (!cue) return;
+  videoState.activeCueIndex = cue.index;
+  videoState.pausedAtCue = -1;
+  lockManualCue(cue);
+  renderCaptions($("#captionSearch")?.value || "");
+  const overlay = $("#stageCaption");
+  if (overlay) {
+    overlay.textContent = cue.text;
+    overlay.classList.add("show");
+  }
+  updateActiveCue(cue.start);
+  if (videoState.embedBlocked) {
+    if (options.showEmbedNotice !== false) {
+      showVideoEmbedNotice("150", videoState.pendingYouTubeId, videoState.pendingYouTubeUrl || videoState.url);
+      showToast("Caption selected", "Use Open at selected caption to continue on YouTube.", "->");
+    }
+    return;
+  }
+  const target = Math.max(0, cue.start + 0.06);
+  seekVideo(target);
 }
 
 function setVideoRate(rate) {
@@ -261,9 +289,9 @@ function ensureYouTubeApi() {
     window.onYouTubeIframeAPIReady = () => { previous?.(); resolve(window.YT); };
     const script = document.createElement("script");
     script.src = "https://www.youtube.com/iframe_api";
-    script.onerror = () => reject(new Error("Không tải được YouTube Player API"));
+    script.onerror = () => reject(new Error("KhÃ´ng táº£i Ä‘Æ°á»£c YouTube Player API"));
     document.head.appendChild(script);
-    setTimeout(() => { if (!window.YT?.Player) reject(new Error("YouTube Player API phản hồi quá lâu")); }, 12000);
+    setTimeout(() => { if (!window.YT?.Player) reject(new Error("YouTube Player API pháº£n há»“i quÃ¡ lÃ¢u")); }, 12000);
   });
   return videoState.youtubeApiPromise;
 }
@@ -275,10 +303,10 @@ async function mountYouTubeVideo(videoId, url) {
     showVideoEmbedNotice("file", videoId, url);
     throw new Error(state.language === "en"
       ? "YouTube embeds cannot identify a file:// page. Run Wordinary through localhost."
-      : "YouTube không thể nhận diện trang mở bằng file://. Hãy chạy Wordinary qua localhost.");
+      : "YouTube khÃ´ng thá»ƒ nháº­n diá»‡n trang má»Ÿ báº±ng file://. HÃ£y cháº¡y Wordinary qua localhost.");
   }
 
-  setVideoStatus(state.language === "en" ? "loading player" : "đang tải player");
+  setVideoStatus(state.language === "en" ? "loading player" : "Ä‘ang táº£i player");
   await ensureYouTubeApi();
   resetYouTubeHost();
   videoState.type = "youtube";
@@ -300,7 +328,7 @@ async function mountYouTubeVideo(videoId, url) {
       videoState.ready = false;
       if (code === 101 || code === 150) showVideoEmbedNotice(String(code), videoId, url);
       else if (code === 153) showVideoEmbedNotice("153", videoId, url);
-      else setVideoStatus(code ? `Error ${code}` : (state.language === "en" ? "player error" : "lỗi player"), false);
+      else setVideoStatus(code ? `Error ${code}` : (state.language === "en" ? "player error" : "lá»—i player"), false);
       if (!settled) {
         settled = true;
         const error = new Error(message);
@@ -329,28 +357,28 @@ async function mountYouTubeVideo(videoId, url) {
             iframe.setAttribute("allowfullscreen", "");
           }
           const data = event.target.getVideoData?.() || {};
-          videoState.title = data.title || `YouTube • ${videoId}`;
+          videoState.title = data.title || `YouTube â€¢ ${videoId}`;
           $("#videoTitle").textContent = videoState.title;
           $("#videoMeta").textContent = state.language === "en"
-            ? "YouTube embed • captions synchronized by timestamp"
-            : "YouTube embed • caption đồng bộ qua timestamp";
-          setVideoStatus(state.language === "en" ? "ready" : "sẵn sàng", true);
+            ? "YouTube embed â€¢ captions synchronized by timestamp"
+            : "YouTube embed â€¢ caption Ä‘á»“ng bá»™ qua timestamp";
+          setVideoStatus(state.language === "en" ? "ready" : "sáºµn sÃ ng", true);
           resolve();
         },
         onStateChange: updateVideoPlayIcon,
         onError: event => {
           const code = Number(event?.data) || 0;
           const messages = {
-            2: state.language === "en" ? "The YouTube URL or video ID is invalid." : "URL hoặc video ID YouTube không hợp lệ.",
-            5: state.language === "en" ? "This video cannot play in the HTML5 embedded player." : "Video này không phát được trong HTML5 embedded player.",
-            100: state.language === "en" ? "This video was removed, is private, or cannot be found." : "Video đã bị xoá, đặt riêng tư hoặc không tồn tại.",
-            101: state.language === "en" ? "The owner does not allow this video to be embedded." : "Chủ video không cho phép phát nhúng.",
-            150: state.language === "en" ? "The owner does not allow this video to be embedded." : "Chủ video không cho phép phát nhúng.",
+            2: state.language === "en" ? "The YouTube URL or video ID is invalid." : "URL hoáº·c video ID YouTube khÃ´ng há»£p lá»‡.",
+            5: state.language === "en" ? "This video cannot play in the HTML5 embedded player." : "Video nÃ y khÃ´ng phÃ¡t Ä‘Æ°á»£c trong HTML5 embedded player.",
+            100: state.language === "en" ? "This video was removed, is private, or cannot be found." : "Video Ä‘Ã£ bá»‹ xoÃ¡, Ä‘áº·t riÃªng tÆ° hoáº·c khÃ´ng tá»“n táº¡i.",
+            101: state.language === "en" ? "The owner does not allow this video to be embedded." : "Chá»§ video khÃ´ng cho phÃ©p phÃ¡t nhÃºng.",
+            150: state.language === "en" ? "The owner does not allow this video to be embedded." : "Chá»§ video khÃ´ng cho phÃ©p phÃ¡t nhÃºng.",
             153: state.language === "en"
               ? "YouTube did not receive an HTTP referrer/client identity. Open Wordinary through localhost, not file://."
-              : "YouTube không nhận được HTTP Referer/danh tính client. Hãy mở Wordinary qua localhost, không mở bằng file://."
+              : "YouTube khÃ´ng nháº­n Ä‘Æ°á»£c HTTP Referer/danh tÃ­nh client. HÃ£y má»Ÿ Wordinary qua localhost, khÃ´ng má»Ÿ báº±ng file://."
           };
-          fail(messages[code] || (state.language === "en" ? `YouTube player error ${code || "unknown"}.` : `YouTube player lỗi ${code || "không xác định"}.`), code);
+          fail(messages[code] || (state.language === "en" ? `YouTube player error ${code || "unknown"}.` : `YouTube player lá»—i ${code || "khÃ´ng xÃ¡c Ä‘á»‹nh"}.`), code);
         }
       }
     });
@@ -358,7 +386,7 @@ async function mountYouTubeVideo(videoId, url) {
   ensureVideoPolling();
 }
 
-function mountNativeVideo(url, title = "Video trực tiếp") {
+function mountNativeVideo(url, title = "Video trá»±c tiáº¿p") {
   resetYouTubeHost();
   const video = $("#nativeVideo");
   video.pause();
@@ -370,32 +398,9 @@ function mountNativeVideo(url, title = "Video trực tiếp") {
   videoState.ready = true;
   showVideoPlayer("native");
   $("#videoTitle").textContent = title;
-  $("#videoMeta").textContent = "HTML5 video • transcript follows playback";
+  $("#videoMeta").textContent = "HTML5 video â€¢ transcript follows playback";
   setVideoStatus("ready", true);
   ensureVideoPolling();
-}
-
-function loadDemoVideo(options = {}) {
-  if (options?.preventDefault) options = {};
-  if (!state.currentUser || !getAuthToken()) {
-    showToast(state.language === "en" ? "Log in required" : "Cần đăng nhập", state.language === "en" ? "Sign in to save videos to your library." : "Đăng nhập để lưu video vào thư viện.", "!");
-    return;
-  }
-  videoState.libraryItemId = options.libraryItemId || "";
-  mountNativeVideo(DEMO_VIDEO_DATA, "Why context makes vocabulary stick");
-  setCaptions(DEMO_VIDEO_CAPTIONS.map(cue => ({ ...cue, translation: "" })), "caption demo • EN");
-  videoState.url = "wordinary://video-demo";
-  $("#videoUrlInput").value = "";
-  const item = persistCurrentVideoToLibrary(true);
-  if (options.restoreItem && item) item.progress = options.restoreItem.progress || item.progress;
-  saveState(); updateStats();
-  saveCurrentVideoToApi().then(() => {
-    if ($("#libraryView")?.classList.contains("active")) renderLibraryOverview();
-  }).catch(error => {
-    discardTransientLibraryItems();
-    console.warn("Could not sync demo video", error);
-  });
-  showToast("Video ready", "Press Play, pause, then highlight a word in the transcript.", "🎬");
 }
 
 async function loadVideoFromUrl(explicitUrl = "", options = {}) {
@@ -404,8 +409,8 @@ async function loadVideoFromUrl(explicitUrl = "", options = {}) {
   const url = String(explicitUrl || input.value || "").trim();
   input.value = url;
   videoState.libraryItemId = options.libraryItemId || "";
-  if (!state.currentUser || !getAuthToken()) return showToast(state.language === "en" ? "Log in required" : "Cần đăng nhập", state.language === "en" ? "Sign in to save videos to your library." : "Đăng nhập để lưu video vào thư viện.", "!");
-  if (!/^https?:\/\//i.test(url)) return showToast("Invalid URL", "Paste a YouTube URL or a public MP4/WebM link that starts with http.", "⚠️");
+  if (!state.currentUser || !getAuthToken()) return showToast(state.language === "en" ? "Log in required" : "Cáº§n Ä‘Äƒng nháº­p", state.language === "en" ? "Sign in to save videos to your library." : "ÄÄƒng nháº­p Ä‘á»ƒ lÆ°u video vÃ o thÆ° viá»‡n.", "!");
+  if (!/^https?:\/\//i.test(url)) return showToast("Invalid URL", "Paste a YouTube URL or a public MP4/WebM link that starts with http.", "âš ï¸");
   const button = $("#loadVideoUrl");
   button.disabled = true; button.textContent = "Analyzing...";
   try {
@@ -421,13 +426,13 @@ async function loadVideoFromUrl(explicitUrl = "", options = {}) {
       const captionData = await fetchCaptionsFromBridge(url, false);
       if (captionData?.embeddable === false) {
         videoState.embedAllowed = false;
-        videoState.title = captionData.title || `YouTube • ${youtubeId}`;
+        videoState.title = captionData.title || `YouTube â€¢ ${youtubeId}`;
         $("#videoTitle").textContent = videoState.title;
         $("#videoMeta").textContent = state.language === "en"
-          ? "YouTube transcript • external playback required"
-          : "YouTube transcript • video yêu cầu phát bên ngoài";
+          ? "YouTube transcript â€¢ external playback required"
+          : "YouTube transcript â€¢ video yÃªu cáº§u phÃ¡t bÃªn ngoÃ i";
         showVideoEmbedNotice("150", youtubeId, url);
-        showToast(state.language === "en" ? "Embedding is disabled" : "Video đã chặn phát nhúng", state.language === "en" ? "The transcript is ready. Open YouTube at a caption timestamp or use a local video file." : "Transcript vẫn sẵn sàng. Hãy mở YouTube tại timestamp hoặc ghép với file video trên máy.", "↗");
+        showToast(state.language === "en" ? "Embedding is disabled" : "Video Ä‘Ã£ cháº·n phÃ¡t nhÃºng", state.language === "en" ? "The transcript is ready. Open YouTube at a caption timestamp or use a local video file." : "Transcript váº«n sáºµn sÃ ng. HÃ£y má»Ÿ YouTube táº¡i timestamp hoáº·c ghÃ©p vá»›i file video trÃªn mÃ¡y.", "â†—");
       } else {
         try {
           await mountYouTubeVideo(youtubeId, url);
@@ -440,21 +445,21 @@ async function loadVideoFromUrl(explicitUrl = "", options = {}) {
         renderCaptions();
         $("#captionDrawer").open = true;
         showToast(
-          state.language === "en" ? "Video loaded without a transcript" : "Chưa có transcript",
-          videoState.lastCaptionError || (state.language === "en" ? "Fetch captions automatically, upload VTT/SRT, or paste a transcript." : "Tự lấy caption, upload VTT/SRT hoặc dán transcript."),
-          "💬"
+          state.language === "en" ? "Video loaded without a transcript" : "ChÆ°a cÃ³ transcript",
+          videoState.lastCaptionError || (state.language === "en" ? "Fetch captions automatically, upload VTT/SRT, or paste a transcript." : "Tá»± láº¥y caption, upload VTT/SRT hoáº·c dÃ¡n transcript."),
+          "ðŸ’¬"
         );
       }
     } else if (/\.(mp4|webm|ogg)(?:[?#].*)?$/i.test(url)) {
       mountNativeVideo(url, decodeURIComponent(url.split("/").pop().split(/[?#]/)[0]) || "Direct video");
       renderCaptions();
       $("#captionDrawer").open = true;
-      showToast("Video opened", "Upload VTT/SRT captions to enable the synced transcript.", "▶️");
+      showToast("Video opened", "Upload VTT/SRT captions to enable the synced transcript.", "â–¶ï¸");
     } else {
       throw new Error("Wordinary supports YouTube URLs or public MP4/WebM/OGG video files.");
     }
   } catch (error) {
-    showToast("Could not open video", error.message || "Try another URL.", "⚠️");
+    showToast("Could not open video", error.message || "Try another URL.", "âš ï¸");
   } finally {
     if (videoState.url) {
       persistCurrentVideoToLibrary(true);
@@ -464,15 +469,15 @@ async function loadVideoFromUrl(explicitUrl = "", options = {}) {
       } catch (error) {
         discardTransientLibraryItems();
         console.warn("Could not sync video", error);
-        showToast(state.language === "en" ? "Video was not saved" : "Video chưa được lưu", error.message || "Backend sync failed.", "!");
+        showToast(state.language === "en" ? "Video was not saved" : "Video chÆ°a Ä‘Æ°á»£c lÆ°u", error.message || "Backend sync failed.", "!");
       }
       saveState(); updateStats();
     }
-    button.disabled = false; button.textContent = state.language === "en" ? "Analyze video" : "Phân tích video";
+    button.disabled = false; button.textContent = state.language === "en" ? "Analyze video" : "PhÃ¢n tÃ­ch video";
   }
 }
 
-function setCaptions(captions, label = "caption đã nhập") {
+function setCaptions(captions, label = "caption Ä‘Ã£ nháº­p") {
   videoState.captions = captions.map(cue => ({
     start: Math.max(0, Number(cue.start) || 0),
     end: Math.max(Number(cue.end) || Number(cue.start) + 3, Number(cue.start) + .1),
@@ -507,28 +512,35 @@ function clearCaptionData(showMessage = true) {
   setCaptionSource("no captions", false);
   $("#stageCaption").classList.remove("show");
   renderCaptions();
-  if (showMessage) showToast("Transcript cleared", "The video stays open.", "🧹");
+  if (showMessage) showToast("Transcript cleared", "The video stays open.", "ðŸ§¹");
 }
 
 function renderCaptions(filter = $("#captionSearch")?.value || "") {
   const root = $("#captionList");
   const query = filter.trim().toLowerCase();
   if (!videoState.captions.length) {
-    root.innerHTML = `<div class="caption-empty"><div><div class="big">💬</div><b>No captions for this video yet</b><p>The video can still play. Fetch captions automatically, upload VTT/SRT, or paste a transcript below.</p><div class="caption-empty-actions"><button class="caption-upload-btn" data-caption-upload>Upload caption</button><button class="caption-upload-btn" data-open-demo>Open demo</button></div></div></div>`;
+    root.innerHTML = `<div class="caption-empty"><div><div class="big">ðŸ’¬</div><b>No captions for this video yet</b><p>The video can still play. Fetch captions automatically, upload VTT/SRT, or paste a transcript below.</p><div class="caption-empty-actions"><button class="caption-upload-btn" data-caption-paste>Paste transcript</button><button class="caption-upload-btn" data-caption-upload>Upload caption</button></div></div></div>`;
     bindCaptionInlineActions();
     return;
   }
   const matches = videoState.captions.filter(cue => !query || `${cue.text} ${cue.translation}`.toLowerCase().includes(query));
   if (!matches.length) {
-    root.innerHTML = `<div class="caption-empty"><div><div class="big">🔎</div><b>No matching caption found</b><p>Try a shorter keyword or clear the filter.</p></div></div>`;
+    root.innerHTML = `<div class="caption-empty"><div><div class="big">ðŸ”Ž</div><b>No matching caption found</b><p>Try a shorter keyword or clear the filter.</p></div></div>`;
     return;
   }
   root.innerHTML = matches.map(cue => `<article class="caption-row ${cue.index === videoState.activeCueIndex ? "active" : ""}" data-cue-index="${cue.index}" data-no-i18n><button class="caption-time-btn" data-seek-cue="${cue.index}">${formatVideoTime(cue.start)}</button><div class="caption-text">${escapeHtml(cue.text)}${cue.translation ? `<small class="caption-translation">${escapeHtml(cue.translation)}</small>` : ""}</div></article>`).join("");
 }
 
+function openCaptionPastePanel() {
+  const drawer = $("#captionDrawer");
+  drawer.open = true;
+  drawer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  setTimeout(() => $("#captionPaste")?.focus(), 180);
+}
+
 function bindCaptionInlineActions() {
+  $$('[data-caption-paste]', $("#captionList")).forEach(btn => btn.addEventListener("click", openCaptionPastePanel));
   $$('[data-caption-upload]', $("#captionList")).forEach(btn => btn.addEventListener("click", () => $("#captionFileInput").click()));
-  $$('[data-open-demo]', $("#captionList")).forEach(btn => btn.addEventListener("click", loadDemoVideo));
 }
 
 function cueAtTime(time) {
@@ -542,7 +554,16 @@ function cueAtTime(time) {
 }
 
 function updateActiveCue(time) {
-  const next = cueAtTime(time);
+  let next = cueAtTime(time);
+  const lockedCue = videoState.captions[videoState.manualCueLockIndex];
+  if (lockedCue && performance.now() < videoState.manualCueLockUntil) {
+    const nearSelectedStart = Math.abs(time - lockedCue.start) < 1.25;
+    const insideSelectedCue = time >= lockedCue.start && time < lockedCue.end;
+    if (nearSelectedStart || insideSelectedCue) next = lockedCue.index;
+  } else {
+    videoState.manualCueLockIndex = -1;
+    videoState.manualCueLockUntil = 0;
+  }
   if (videoState.loopCue && videoState.activeCueIndex >= 0) {
     const cue = videoState.captions[videoState.activeCueIndex];
     if (cue && time >= cue.end) { seekVideo(cue.start); playVideo(); return; }
@@ -553,7 +574,7 @@ function updateActiveCue(time) {
       videoState.pausedAtCue = videoState.activeCueIndex;
       pauseVideo();
       seekVideo(Math.max(cue.start, cue.end - .04));
-      showToast("Đến cuối câu", "Nhấn Play để tiếp tục hoặc ↻ Câu để nghe lại.", "🗣️");
+      showToast("Äáº¿n cuá»‘i cÃ¢u", "Nháº¥n Play Ä‘á»ƒ tiáº¿p tá»¥c hoáº·c â†» CÃ¢u Ä‘á»ƒ nghe láº¡i.", "ðŸ—£ï¸");
       return;
     }
   }
@@ -571,7 +592,7 @@ function updateActiveCue(time) {
   }
 }
 
-function updateVideoPlayIcon() { $("#videoPlayToggle").textContent = isVideoPlaying() ? "❚❚" : "▶"; }
+function updateVideoPlayIcon() { $("#videoPlayToggle").textContent = isVideoPlaying() ? "âšâš" : "â–¶"; }
 
 function updateVideoTimeline(force = false) {
   const current = getVideoCurrentTime();
@@ -642,7 +663,7 @@ function ensureVideoPolling() {
 
 function jumpToActiveCue() {
   const cue = videoState.captions[videoState.activeCueIndex];
-  if (!cue) return showToast("Chưa có câu đang phát", "Phát video hoặc chọn timestamp trong transcript.", "💬");
+  if (!cue) return showToast("ChÆ°a cÃ³ cÃ¢u Ä‘ang phÃ¡t", "PhÃ¡t video hoáº·c chá»n timestamp trong transcript.", "ðŸ’¬");
   $(`.caption-row[data-cue-index="${videoState.activeCueIndex}"]`, $("#captionList"))?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
@@ -656,16 +677,16 @@ function replayActiveCue() {
 
 async function translateActiveCue() {
   const cue = videoState.captions[videoState.activeCueIndex];
-  if (!cue) return showToast("Chưa có câu đang phát", "Hãy phát video hoặc chọn một timestamp.", "💬");
+  if (!cue) return showToast("ChÆ°a cÃ³ cÃ¢u Ä‘ang phÃ¡t", "HÃ£y phÃ¡t video hoáº·c chá»n má»™t timestamp.", "ðŸ’¬");
   const button = $("#translateCueBtn");
   if (cue.translation) { cue.translation = ""; button.classList.remove("active"); renderCaptions(); updateActiveCue(getVideoCurrentTime()); return; }
-  const old = button.textContent; button.textContent = "Đang dịch..."; button.disabled = true;
+  const old = button.textContent; button.textContent = "Äang dá»‹ch..."; button.disabled = true;
   try {
     cue.translation = await translate(cue.text);
     renderCaptions();
     updateActiveCue(getVideoCurrentTime());
     button.classList.add("active");
-  } catch (_) { showToast("Chưa dịch được câu", "API miễn phí đang bận. Bạn vẫn có thể chọn từ để dịch.", "⚠️"); }
+  } catch (_) { showToast("ChÆ°a dá»‹ch Ä‘Æ°á»£c cÃ¢u", "API miá»…n phÃ­ Ä‘ang báº­n. Báº¡n váº«n cÃ³ thá»ƒ chá»n tá»« Ä‘á»ƒ dá»‹ch.", "âš ï¸"); }
   finally { button.textContent = old; button.disabled = false; }
 }
 
@@ -673,23 +694,23 @@ async function handleCaptionFile(file) {
   if (!file) return;
   try {
     const cues = parseCaptionText(await file.text());
-    if (!cues.length) throw new Error("Không tìm thấy timestamp hoặc câu caption hợp lệ.");
-    setCaptions(cues, `${file.name} • ${cues.length} cues`);
-    showToast("Đã nhập caption", `${cues.length} dòng đã sẵn sàng để đồng bộ.`, "💬");
-  } catch (error) { showToast("Chưa đọc được caption", error.message || "Hãy thử tệp VTT/SRT khác.", "⚠️"); }
+    if (!cues.length) throw new Error("KhÃ´ng tÃ¬m tháº¥y timestamp hoáº·c cÃ¢u caption há»£p lá»‡.");
+    setCaptions(cues, `${file.name} â€¢ ${cues.length} cues`);
+    showToast("ÄÃ£ nháº­p caption", `${cues.length} dÃ²ng Ä‘Ã£ sáºµn sÃ ng Ä‘á»ƒ Ä‘á»“ng bá»™.`, "ðŸ’¬");
+  } catch (error) { showToast("ChÆ°a Ä‘á»c Ä‘Æ°á»£c caption", error.message || "HÃ£y thá»­ tá»‡p VTT/SRT khÃ¡c.", "âš ï¸"); }
   finally { $("#captionFileInput").value = ""; }
 }
 
 function usePastedCaptions() {
   const cues = parseCaptionText($("#captionPaste").value);
-  if (!cues.length) return showToast("Transcript is empty", "Paste VTT, SRT, JSON, or one sentence per line.", "⚠️");
-  setCaptions(cues, `pasted transcript • ${cues.length} cues`);
-  showToast("Transcript synced", "Timestamps were read or distributed automatically.", "✨");
+  if (!cues.length) return showToast("Transcript is empty", "Paste VTT, SRT, JSON, or one sentence per line.", "âš ï¸");
+  setCaptions(cues, `pasted transcript â€¢ ${cues.length} cues`);
+  showToast("Transcript synced", "Timestamps were read or distributed automatically.", "âœ¨");
 }
 
 async function fetchCaptionsFromBridge(url = videoState.url, notify = true) {
   if (!url || url.startsWith("wordinary://")) {
-    if (notify) showToast("Demo captions are ready", "The sample captions are already included.", "✨");
+    if (notify) showToast("No video URL", "Paste and analyze a video before fetching captions.", "!");
     return false;
   }
   setCaptionSource("fetching captions...", false);
@@ -697,25 +718,25 @@ async function fetchCaptionsFromBridge(url = videoState.url, notify = true) {
   try {
     const data = await apiRequest(`/captions/fetch?lang=en&url=${encodeURIComponent(url)}`);
     const cues = Array.isArray(data?.captions) ? data.captions : [];
-    if (!cues.length) throw new Error(data?.error || "Video không có caption tiếng Anh.");
+    if (!cues.length) throw new Error(data?.error || "Video khÃ´ng cÃ³ caption tiáº¿ng Anh.");
     if (data.title) { videoState.title = data.title; $("#videoTitle").textContent = data.title; }
     videoState.embedAllowed = typeof data.embeddable === "boolean" ? data.embeddable : null;
-    setCaptions(cues, `${data.source === "manual" ? "official" : "auto"} • ${data.language || "EN"} • yt-dlp`);
-    if (notify) showToast("Captions ready", `${cues.length} caption lines loaded.`, "✅");
+    setCaptions(cues, `${data.source === "manual" ? "official" : "auto"} â€¢ ${data.language || "EN"} â€¢ yt-dlp`);
+    if (notify) showToast("Captions ready", `${cues.length} caption lines loaded.`, "âœ…");
     return data;
   } catch (error) {
-    videoState.lastCaptionError = error.message || "Check the caption service.";
+    videoState.lastCaptionError = error.message || "Paste or upload a transcript instead.";
     setCaptionSource("caption fetch failed", false);
-    if (notify) showToast("Could not fetch captions", error.message || "Check the caption service.", "🔌");
+    if (notify) showToast("Could not fetch captions", error.message || "Paste or upload a transcript instead.", "ðŸ”Œ");
     return null;
   }
 }
 
 async function checkCaptionServer() {
   try {
-    const data = await apiRequest("/captions/health");
-    showToast("Caption service is running", `yt-dlp ${data.ytDlp || data.yt_dlp || "ready"} • service`, "✅");
-  } catch (_) { showToast("Caption service is unavailable", "Start the Docker Compose stack, then try again.", "🔌"); }
+    await apiRequest("/captions/health");
+    showToast("Caption status", "Automatic captions are reachable.", "âœ…");
+  } catch (_) { showToast("Caption status", "Automatic captions are unavailable. Paste or upload a transcript instead.", "ðŸ”Œ"); }
 }
 
 async function handleCaptionSelection() {
@@ -742,9 +763,10 @@ async function handleCaptionSelection() {
   };
   openSelectionPopup(range.getBoundingClientRect());
   loadSelectionData();
-  $("#captionHint").textContent = `Đang chọn “${selected}” tại ${formatVideoTime(cue.start)}`;
+  $("#captionHint").textContent = `Äang chá»n â€œ${selected}â€ táº¡i ${formatVideoTime(cue.start)}`;
 }
 
 function updateVideoSavedCount() {
   $("#videoSavedCount").textContent = state.cards.filter(card => card.sourceType === "video").length;
 }
+

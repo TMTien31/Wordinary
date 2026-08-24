@@ -59,6 +59,5 @@
     .article-title { text-wrap: balance; }
     .reading-hint { background: linear-gradient(135deg, rgba(255,226,102,.23), rgba(109,85,247,.08)); border-color: rgba(109,85,247,.15); }
     mark.saved-word { background: linear-gradient(transparent 55%, rgba(255, 226, 102, .78) 55%); }
-    .eyebrow { color: var(--wordinary-violet); }
     .video-new-badge { background: var(--wordinary-coral); }
 

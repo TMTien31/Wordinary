@@ -1,7 +1,5 @@
 function bindVideoEvents() {
-  $("#loadVideoDemo").addEventListener("click", () => loadDemoVideo());
   $("#loadVideoUrl").addEventListener("click", () => loadVideoFromUrl());
-  $("#videoAddNew")?.addEventListener("click", () => { $("#videoUrlInput").focus(); $("#videoUrlInput").select(); });
   $("#copyLocalhostCommand")?.addEventListener("click", copyWordinaryServerCommand);
   $("#openCurrentYouTube")?.addEventListener("click", () => openPendingYouTubeVideo(0));
   $("#openYouTubeAtCue")?.addEventListener("click", openPendingYouTubeAtCue);
@@ -37,28 +35,17 @@ function bindVideoEvents() {
     const row = event.target.closest(".caption-row");
     if (button) {
       const cue = videoState.captions[Number(button.dataset.seekCue)];
-      if (cue) {
-        videoState.activeCueIndex = cue.index;
-        renderCaptions($("#captionSearch")?.value || "");
-        if (videoState.embedBlocked) {
-          showVideoEmbedNotice("150", videoState.pendingYouTubeId, videoState.pendingYouTubeUrl || videoState.url);
-          showToast(state.language === "en" ? "Caption selected" : "Đã chọn câu", state.language === "en" ? "Use “Open at selected caption” to continue on YouTube." : "Bấm “Mở tại câu đang chọn” để tiếp tục trên YouTube.", "↗");
-        } else seekVideo(cue.start);
-      }
+      if (cue) seekToCaptionCue(cue);
       return;
     }
     if (row && window.getSelection()?.isCollapsed) {
       const cue = videoState.captions[Number(row.dataset.cueIndex)];
-      if (cue) {
-        videoState.activeCueIndex = cue.index;
-        if (!videoState.embedBlocked) seekVideo(cue.start);
-        else renderCaptions($("#captionSearch")?.value || "");
-      }
+      if (cue) seekToCaptionCue(cue, { showEmbedNotice: false });
     }
   });
   $("#jumpActiveCue").addEventListener("click", jumpToActiveCue);
-  $("#retryCaptionServer").addEventListener("click", () => fetchCaptionsFromBridge(videoState.url, true));
-  $("#checkCaptionServer").addEventListener("click", checkCaptionServer);
+  $("#retryCaptionServer")?.addEventListener("click", () => fetchCaptionsFromBridge(videoState.url, true));
+  $("#checkCaptionServer")?.addEventListener("click", checkCaptionServer);
   $("#usePastedCaptions").addEventListener("click", usePastedCaptions);
   $("#clearCaptions").addEventListener("click", () => clearCaptionData(true));
   document.addEventListener("keydown", event => {

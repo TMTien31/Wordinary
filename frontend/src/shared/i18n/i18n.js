@@ -181,8 +181,8 @@ function applyLanguage() {
   $("#languageToggle").title = state.language === "vi" ? "Switch to English" : "Switch to Vietnamese";
   const active = $(".nav-btn.active")?.dataset.view;
   if (active) {
-    const namesVi = { libraryView:"Thư viện",cardsView:"Từ vựng",reviewView:"Luyện tập",readerView:"Đọc",pdfView:"PDF",videoView:"Video",settingsView:"Cài đặt" };
-    const namesEn = { libraryView:"Library",cardsView:"Vocabulary",reviewView:"Practice",readerView:"Read",pdfView:"PDF",videoView:"Video",settingsView:"Settings" };
+    const namesVi = { libraryView:"Thư viện",cardsView:"Từ vựng",reviewView:"Luyện tập",readerView:"Đọc",pdfView:"PDF",videoView:"Video",dictationView:"Chép chính tả",settingsView:"Cài đặt" };
+    const namesEn = { libraryView:"Library",cardsView:"Vocabulary",reviewView:"Practice",readerView:"Read",pdfView:"PDF",videoView:"Video",dictationView:"Dictation",settingsView:"Settings" };
     $("#crumbName").textContent = (state.language === "en" ? namesEn : namesVi)[active];
   }
   updateReaderRailButton();
@@ -239,8 +239,8 @@ function updateMainSidebarButton() {
   button.title = label;
   button.setAttribute("aria-label", label);
   button.setAttribute("aria-expanded", String(!state.mainSidebarCollapsed));
-  const viewNamesVi = { libraryView:"Thư viện", cardsView:"Từ vựng", reviewView:"Luyện tập", readerView:"Đọc", pdfView:"PDF", videoView:"Video", settingsView:"Cài đặt" };
-  const viewNamesEn = { libraryView:"Library", cardsView:"Vocabulary", reviewView:"Practice", readerView:"Read", pdfView:"PDF", videoView:"Video", settingsView:"Settings" };
+  const viewNamesVi = { libraryView:"Thư viện", cardsView:"Từ vựng", reviewView:"Luyện tập", readerView:"Đọc", pdfView:"PDF", videoView:"Video", dictationView:"Chép chính tả", settingsView:"Cài đặt" };
+  const viewNamesEn = { libraryView:"Library", cardsView:"Vocabulary", reviewView:"Practice", readerView:"Read", pdfView:"PDF", videoView:"Video", dictationView:"Dictation", settingsView:"Settings" };
   $$(".nav-btn").forEach(nav => {
     const name = (state.language === "en" ? viewNamesEn : viewNamesVi)[nav.dataset.view] || nav.querySelector(".nav-text")?.textContent.trim() || "";
     nav.title = state.mainSidebarCollapsed ? name : "";
