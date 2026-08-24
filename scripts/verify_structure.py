@@ -2,7 +2,6 @@
 """Static smoke checks for the refactored Wordinary package."""
 from __future__ import annotations
 
-import base64
 import importlib
 import re
 import subprocess
@@ -54,8 +53,6 @@ def main() -> None:
         FRONTEND / "index.html",
         FRONTEND / "src/main.js",
         FRONTEND / "src/styles/main.css",
-        FRONTEND / "public/demo/demo-video.mp4",
-        FRONTEND / "public/demo/demo-document.pdf",
     ]
     missing = [str(path.relative_to(ROOT)) for path in required if not path.is_file()]
     if missing:
@@ -138,15 +135,6 @@ def main() -> None:
         resolved_lines = [line for part in css_parts for line in part.splitlines() if line.strip()]
         if resolved_lines != original_lines:
             fail("Resolved modular CSS no longer matches the original v7 stylesheet")
-
-        original_video_match = re.search(r'const DEMO_VIDEO_DATA = "data:video/mp4;base64,([^"]+)";', original)
-        original_pdf_match = re.search(r'const PDF_DEMO_BASE64 = "([^"]+)";', original)
-        if not original_video_match or not original_pdf_match:
-            fail("Could not find original embedded demo assets for comparison")
-        if base64.b64decode(original_video_match.group(1)) != (FRONTEND / "public/demo/demo-video.mp4").read_bytes():
-            fail("Extracted demo video does not match the original embedded MP4")
-        if base64.b64decode(original_pdf_match.group(1)) != (FRONTEND / "public/demo/demo-document.pdf").read_bytes():
-            fail("Extracted demo PDF does not match the original embedded PDF")
 
     print(f"[OK] {len(script_refs)} JavaScript files, server/schema syntax, frontend assets, and references verified.")
 

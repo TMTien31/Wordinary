@@ -1,4 +1,4 @@
-﻿const DICTATION_PROGRESS_KEY = "wordinary_dictation_progress";
+const DICTATION_PROGRESS_KEY = "wordinary_dictation_progress";
 
 function loadDictationProgress() {
   try {
@@ -214,7 +214,7 @@ async function ensureDictationItemDetail(itemId = dictationState.itemId) {
     const detail = await libraryApiGetItem(item.id);
     item = upsertLibraryItem(apiDetailToVideoItem(detail), false);
   } catch (error) {
-    showToast(state.language === "en" ? "Could not load transcript" : "ChÆ°a táº£i Ä‘Æ°á»£c transcript", error.message || "Open the video and fetch captions first.", "!");
+    showToast(state.language === "en" ? "Could not load transcript" : "Chưa tải được transcript", error.message || "Open the video and fetch captions first.", "!");
   } finally {
     dictationState.loading = false;
   }
@@ -404,7 +404,7 @@ function renderDictationStage() {
     ? result.accepted
       ? "Full context matched well enough to move forward."
       : `${result.diff.accuracy}% match. Fix the highlighted words or hear it again.`
-    : `${formatVideoTime(segment.start)} - ${formatVideoTime(segment.end)} â€¢ ${segment.wordCount} words`;
+    : `${formatVideoTime(segment.start)} - ${formatVideoTime(segment.end)} • ${segment.wordCount} words`;
 
   root.innerHTML = `<div class="dictation-card">
     <div class="dictation-topline"><span>${dictationState.index + 1}/${dictationState.segments.length}</span><span>${escapeHtml(item.title)}</span></div>
@@ -418,8 +418,8 @@ function renderDictationStage() {
           <div class="dictation-prompt">
             <div><span class="dictation-time">${formatVideoTime(segment.start)} - ${formatVideoTime(segment.end)}</span><h2>${escapeHtml(resultTitle)}</h2><p>${escapeHtml(resultNote)}</p></div>
             <div class="dictation-audio-actions">
-              <button class="dictation-round-btn" id="dictationPrev" title="Previous segment">â†</button>
-              <button class="dictation-round-btn" id="dictationNext" title="Next segment">â†’</button>
+              <button class="dictation-round-btn" id="dictationPrev" title="Previous segment">←</button>
+              <button class="dictation-round-btn" id="dictationNext" title="Next segment">→</button>
             </div>
           </div>
           ${renderDictationHint(segment)}
@@ -511,7 +511,7 @@ function checkDictationAnswer() {
   const answer = $("#dictationAnswer")?.value || "";
   if (!segment) return;
   if (!answer.trim()) {
-    showToast(state.language === "en" ? "Type the line first" : "HÃ£y gÃµ cÃ¢u trÆ°á»›c", "Listen once, then type the full segment.", "!");
+    showToast(state.language === "en" ? "Type the line first" : "Hãy gõ câu trước", "Listen once, then type the full segment.", "!");
     return;
   }
   dictationState.answer = answer;
@@ -753,7 +753,7 @@ function playDictationVisibleMedia(segment = dictationCurrentSegment(), item = g
   if (native) {
     native.currentTime = Math.max(0, Number(segment.start) || 0);
     native.playbackRate = dictationPlaybackRate();
-    native.play().catch(() => showToast("Playback blocked", "Press play in the video panel once, then replay the segment.", "â–¶"));
+    native.play().catch(() => showToast("Playback blocked", "Press play in the video panel once, then replay the segment.", "▶"));
     clearTimeout(dictationState.replayTimer);
     dictationState.replayTimer = setTimeout(() => {
       native.pause();
@@ -805,13 +805,13 @@ async function openDictationSourceInVideo() {
 async function startDictationFromCurrentVideo() {
   if (!videoState.url) {
     setView("videoView");
-    showToast(state.language === "en" ? "Open a video first" : "HÃ£y má»Ÿ video trÆ°á»›c", "Dictation needs a video transcript.", "!");
+    showToast(state.language === "en" ? "Open a video first" : "Hãy mở video trước", "Dictation needs a video transcript.", "!");
     return;
   }
   if (!videoState.captions.length) {
     setView("videoView");
     $("#captionDrawer").open = true;
-    showToast(state.language === "en" ? "Captions needed" : "Cáº§n caption", "Fetch, upload, or paste captions before dictation.", "CC");
+    showToast(state.language === "en" ? "Captions needed" : "Cần caption", "Fetch, upload, or paste captions before dictation.", "CC");
     return;
   }
   const item = persistCurrentVideoToLibrary(true);
@@ -826,7 +826,7 @@ function retryMissedDictation() {
   const progress = dictationProgressForItem();
   const missedIndex = dictationState.segments.findIndex(segment => progress.segments?.[segment.id]?.status === "retry");
   if (missedIndex < 0) {
-    showToast(state.language === "en" ? "No missed segments" : "ChÆ°a cÃ³ Ä‘oáº¡n sai", "Segments you miss will appear here for another pass.", "âœ“");
+    showToast(state.language === "en" ? "No missed segments" : "Chưa có đoạn sai", "Segments you miss will appear here for another pass.", "✓");
     return;
   }
   setDictationIndex(missedIndex);
