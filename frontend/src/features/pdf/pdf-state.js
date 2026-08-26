@@ -12,6 +12,7 @@ const pdfState = {
   wordPages: [],
   wordPageIndex: 0,
   activeWord: "",
+  highlightedWords: [],
   renderToken: 0,
   indexing: false,
   outputScale: 1,

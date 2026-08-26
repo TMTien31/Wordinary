@@ -103,6 +103,7 @@ async function openPdfBytes(bytes, fileName = "document.pdf", options = {}) {
     pdfState.pageTexts.clear();
     pdfState.pageItems.clear();
     pdfState.activeWord = "";
+    pdfState.highlightedWords = [];
     pdfState.wordPages = [];
     $("#pdfOnboarding").classList.add("is-hidden");
     setPdfOnboardingLoading(false);
@@ -229,7 +230,7 @@ async function renderPdfPage(pageNumber = pdfState.page) {
     $("#pdfPageStatus").textContent = textContent.items.length ? (state.language === "en" ? `Page ${pageNumber} / ${pdfState.pageCount} • text can be selected` : `Trang ${pageNumber} / ${pdfState.pageCount} • có thể chọn chữ`) : (state.language === "en" ? `Page ${pageNumber} / ${pdfState.pageCount} • scanned page, try OCR` : `Trang ${pageNumber} / ${pdfState.pageCount} • trang scan, hãy thử OCR`);
     $$(".pdf-thumb").forEach(item => item.classList.toggle("active", Number(item.dataset.pdfPage) === pageNumber));
     const activeThumb = $(`.pdf-thumb[data-pdf-page="${pageNumber}"]`); activeThumb?.scrollIntoView({ block:"nearest" });
-    if (pdfState.activeWord) highlightPdfWordOnPage(pdfState.activeWord, false);
+    if (pdfState.activeWord || pdfState.highlightedWords.length) applyPdfHighlights(pdfState.activeWord, false);
   } catch (error) { console.error(error); showToast("PDF render error", error.message || "Không thể render trang này.", "⚠️"); }
   finally { if (token === pdfState.renderToken) setPdfLoading(false); }
 }
@@ -349,55 +350,161 @@ function pdfCards() {
   return state.cards.filter(card => card.sourceType === "pdf" && (card.sourceId === pdfState.libraryItemId || card.sourceId === pdfState.id));
 }
 
+function pdfWordRegex(word = "") {
+  const trimmed = word.trim();
+  if (!trimmed) return null;
+  const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const source = /^[a-z0-9].*[a-z0-9]$/i.test(trimmed) ? `\\b${escaped}\\b` : escaped;
+  try { return new RegExp(source, "gi"); } catch (_) { return null; }
+}
+
+function normalizePdfHighlightedWords(cards = pdfCards()) {
+  const available = new Map(cards.map(card => [(card.word || "").trim().toLowerCase(), card.word || ""]));
+  const active = (pdfState.activeWord || "").trim().toLowerCase();
+  pdfState.highlightedWords = (Array.isArray(pdfState.highlightedWords) ? pdfState.highlightedWords : [])
+    .map(word => String(word || "").trim())
+    .filter((word, index, words) => {
+      const key = word.toLowerCase();
+      return word && (!available.size || available.has(key) || key === active) && words.findIndex(item => item.toLowerCase() === key) === index;
+    })
+    .map(word => available.get(word.toLowerCase()) || word);
+  return pdfState.highlightedWords;
+}
+
+function pdfHighlightColors() {
+  return typeof READER_HIGHLIGHT_COLORS !== "undefined"
+    ? READER_HIGHLIGHT_COLORS
+    : ["yellow", "green", "coral", "violet", "blue", "mint", "rose", "amber", "teal", "indigo"];
+}
+
+function pdfHighlightColorClass(word = "") {
+  const index = normalizePdfHighlightedWords().findIndex(item => item.toLowerCase() === word.toLowerCase());
+  return pdfHighlightColors()[Math.max(0, index) % pdfHighlightColors().length];
+}
+
+function pdfPagesForWord(word = "") {
+  const regex = pdfWordRegex(word);
+  if (!regex) return [];
+  return [...pdfState.pageTexts.entries()]
+    .filter(([,text]) => {
+      regex.lastIndex = 0;
+      return regex.test(text);
+    })
+    .map(([page]) => page)
+    .sort((a,b)=>a-b);
+}
+
 function renderPdfWordRail() {
   if (!$("#pdfWordList")) return;
   const map = new Map();
   pdfCards().forEach(card => { const key = (card.word || "").trim().toLowerCase(); if (key && !map.has(key)) map.set(key, card); });
   const cards = [...map.values()];
+  normalizePdfHighlightedWords(cards);
   $("#pdfSavedCount").textContent = cards.length;
   const root = $("#pdfWordList");
   if (!cards.length) {
     root.innerHTML = `<div class="pdf-word-empty">${state.language === "en" ? "No words saved from this PDF yet. Highlight text on the page to start a context collection." : "Chưa có từ nào được lưu từ PDF này. Hãy bôi đen chữ trên trang để bắt đầu bộ ngữ cảnh."}</div>`;
     return;
   }
-  root.innerHTML = cards.map(card => `<button class="pdf-word-item ${pdfState.activeWord.toLowerCase() === card.word.toLowerCase() ? "active" : ""}" data-pdf-word="${escapeHtml(card.word)}"><img src="${iconUrl(card.icon)}" alt=""><span><b>${escapeHtml(card.word)}</b><small>${escapeHtml(card.translation || "")}</small></span><span>${Number.isFinite(card.sourcePage) ? `p.${card.sourcePage}` : "PDF"}</span></button>`).join("");
+  root.innerHTML = cards.map(card => {
+    const word = card.word || "";
+    const highlighted = pdfState.highlightedWords.some(item => item.toLowerCase() === word.toLowerCase());
+    const current = pdfState.activeWord.toLowerCase() === word.toLowerCase();
+    const pages = pdfPagesForWord(word).length || (Number.isFinite(card.sourcePage) ? 1 : 0);
+    const color = highlighted ? pdfHighlightColorClass(word) : "off";
+    const sourceLabel = Number.isFinite(card.sourcePage) ? `p.${card.sourcePage}` : "PDF";
+    const highlightTitle = current ? "Highlight off" : highlighted ? "Use navigation" : "Highlight on";
+    return `<div class="pdf-word-item ${highlighted ? "highlighted" : ""} ${current ? "active" : ""}" data-pdf-card="${card.id}" role="button" tabindex="0">
+      <span class="pdf-word-icon"><img src="${iconUrl(card.icon)}" alt=""></span>
+      <span class="pdf-word-copy"><b>${escapeHtml(word)}</b><small>${escapeHtml(card.translation || "No translation yet")} · ${sourceLabel}</small></span>
+      <button class="pdf-word-highlight ${highlighted ? "active" : ""} ${color}" data-pdf-highlight-word="${escapeHtml(word)}" type="button" title="${highlightTitle}" aria-pressed="${highlighted ? "true" : "false"}"><span aria-hidden="true">H</span><small>${pages}</small></button>
+    </div>`;
+  }).join("");
 }
 
 function updatePdfWordPages(word) {
-  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
-  const regex = new RegExp(`(^|[^A-Za-z])${escaped}([^A-Za-z]|$)`,"i");
-  pdfState.wordPages = [...pdfState.pageTexts.entries()].filter(([,text]) => regex.test(text)).map(([page]) => page).sort((a,b)=>a-b);
+  pdfState.wordPages = pdfPagesForWord(word);
   pdfState.wordPageIndex = Math.max(0, pdfState.wordPages.indexOf(pdfState.page));
   $("#pdfActiveWordBox").classList.toggle("is-hidden", !word);
   $("#pdfActiveWord").textContent = word || "—";
   $("#pdfOccurrenceLabel").textContent = `${pdfState.wordPages.length} ${state.language === "en" ? "pages" : "trang"}`;
 }
 
-async function highlightPdfWord(word, navigate = true) {
+async function highlightPdfWord(word, navigate = true, syncHighlighted = true) {
   pdfState.activeWord = word || "";
   renderPdfWordRail();
-  if (!word) { $$("#pdfTextLayer .pdf-word-hit").forEach(span => span.classList.remove("pdf-word-hit","active")); $("#pdfActiveWordBox").classList.add("is-hidden"); return; }
+  if (!word) {
+    pdfState.highlightedWords = [];
+    $$("#pdfTextLayer .pdf-word-hit").forEach(span => {
+      span.classList.remove("pdf-word-hit","active","yellow","green","coral","violet","blue","mint","rose","amber","teal","indigo");
+      delete span.dataset.pdfHighlightWord;
+    });
+    $("#pdfActiveWordBox").classList.add("is-hidden");
+    return;
+  }
+  if (syncHighlighted && !pdfState.highlightedWords.some(item => item.toLowerCase() === word.toLowerCase())) {
+    pdfState.highlightedWords = [...normalizePdfHighlightedWords(), word];
+  }
   updatePdfWordPages(word);
   if (navigate && pdfState.wordPages.length && !pdfState.wordPages.includes(pdfState.page)) await renderPdfPage(pdfState.wordPages[0]);
-  highlightPdfWordOnPage(word, true);
+  applyPdfHighlights(word, true);
+  renderPdfWordRail();
+  saveState();
 }
 
-function highlightPdfWordOnPage(word, scroll = true) {
-  const normalized = word.toLowerCase();
+function applyPdfHighlights(scrollWord = pdfState.activeWord, scroll = true) {
+  const entries = normalizePdfHighlightedWords()
+    .map(word => ({ word, regex: pdfWordRegex(word), color: pdfHighlightColorClass(word) }))
+    .filter(entry => entry.regex);
   const hits = [];
   $$("#pdfTextLayer span").forEach(span => {
-    span.classList.remove("pdf-word-hit","active");
-    const text = (span.dataset.pdfText || span.textContent || "").toLowerCase();
-    if (normalized && text.includes(normalized)) { span.classList.add("pdf-word-hit"); hits.push(span); }
+    span.classList.remove("pdf-word-hit","active","yellow","green","coral","violet","blue","mint","rose","amber","teal","indigo");
+    delete span.dataset.pdfHighlightWord;
+    const text = span.dataset.pdfText || span.textContent || "";
+    const entry = entries.find(item => {
+      item.regex.lastIndex = 0;
+      return item.regex.test(text);
+    });
+    if (!entry) return;
+    span.classList.add("pdf-word-hit", entry.color);
+    span.dataset.pdfHighlightWord = entry.word;
+    if (scrollWord && entry.word.toLowerCase() === scrollWord.toLowerCase()) {
+      span.classList.add("active");
+      hits.push(span);
+    }
   });
   if (hits.length) { hits[0].classList.add("active"); if (scroll) hits[0].scrollIntoView({ behavior:"smooth", block:"center", inline:"center" }); }
+}
+
+async function togglePdfWordHighlight(word = "") {
+  const value = word.trim();
+  if (!value) return;
+  normalizePdfHighlightedWords();
+  const exists = pdfState.highlightedWords.some(item => item.toLowerCase() === value.toLowerCase());
+  const isCurrent = pdfState.activeWord.toLowerCase() === value.toLowerCase();
+  if (exists && isCurrent) {
+    pdfState.highlightedWords = pdfState.highlightedWords.filter(item => item.toLowerCase() !== value.toLowerCase());
+    pdfState.activeWord = "";
+  } else {
+    if (!exists) pdfState.highlightedWords = [...pdfState.highlightedWords, value];
+    pdfState.activeWord = value;
+  }
+  if (pdfState.activeWord) {
+    updatePdfWordPages(pdfState.activeWord);
+    if (pdfState.wordPages.length && !pdfState.wordPages.includes(pdfState.page)) await renderPdfPage(pdfState.wordPages[0]);
+  } else {
+    $("#pdfActiveWordBox").classList.add("is-hidden");
+  }
+  applyPdfHighlights(pdfState.activeWord, true);
+  renderPdfWordRail();
+  saveState();
 }
 
 async function movePdfOccurrence(direction) {
   if (!pdfState.wordPages.length) return;
   pdfState.wordPageIndex = (pdfState.wordPageIndex + direction + pdfState.wordPages.length) % pdfState.wordPages.length;
   await renderPdfPage(pdfState.wordPages[pdfState.wordPageIndex]);
-  highlightPdfWordOnPage(pdfState.activeWord, true);
+  applyPdfHighlights(pdfState.activeWord, true);
 }
 
 function pdfSentenceForSelection(selected, pageText) {
@@ -498,11 +605,27 @@ function bindPdfEvents() {
   $("#pdfThumbnails").addEventListener("click", event => { const item = event.target.closest("[data-pdf-page]"); if (item) renderPdfPage(item.dataset.pdfPage); });
   $("#pdfTextLayer").addEventListener("mouseup", handlePdfSelection);
   $("#pdfTextLayer").addEventListener("touchend", handlePdfSelection);
-  $("#pdfWordList").addEventListener("click", event => { const item = event.target.closest("[data-pdf-word]"); if (item) highlightPdfWord(item.dataset.pdfWord); });
+  $("#pdfWordList").addEventListener("click", async event => {
+    const highlightButton = event.target.closest("[data-pdf-highlight-word]");
+    if (highlightButton) {
+      event.stopPropagation();
+      await togglePdfWordHighlight(highlightButton.dataset.pdfHighlightWord);
+      return;
+    }
+    const card = event.target.closest("[data-pdf-card]");
+    if (card) openEditCard(card.dataset.pdfCard);
+  });
+  $("#pdfWordList").addEventListener("keydown", event => {
+    if (!["Enter", " "].includes(event.key)) return;
+    if (event.target.closest("[data-pdf-highlight-word]")) return;
+    const card = event.target.closest("[data-pdf-card]");
+    if (!card) return;
+    event.preventDefault();
+    openEditCard(card.dataset.pdfCard);
+  });
   $("#pdfPrevOccurrence").addEventListener("click", () => movePdfOccurrence(-1));
   $("#pdfNextOccurrence").addEventListener("click", () => movePdfOccurrence(1));
   $("#pdfSearchInput").addEventListener("keydown", event => { if (event.key === "Enter") highlightPdfWord(event.target.value.trim()); });
   $("#pdfOcrPage").addEventListener("click", ocrCurrentPdfPage);
   let resizeTimer; window.addEventListener("resize", () => { if (!pdfState.doc || pdfState.fitMode !== "width" || !$("#pdfView").classList.contains("active")) return; clearTimeout(resizeTimer); resizeTimer = setTimeout(() => renderPdfPage(pdfState.page), 180); });
 }
-

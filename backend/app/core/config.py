@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     wody_timeout_seconds: int = 45
     jina_api_key: str | None = None
     jina_timeout_seconds: int = 25
-    jina_max_tokens: int = 2500
+    jina_max_tokens: int = 8000
 
     @field_validator("backend_cors_origins", mode="before")
     @classmethod

@@ -80,6 +80,7 @@ async function saveEditedCard() {
     updateStats();
     renderCards($("#cardSearch").value);
     renderPdfWordRail();
+    if ($("#pdfView").classList.contains("active") && typeof applyPdfHighlights === "function") applyPdfHighlights(pdfState.activeWord, false);
     if ($("#readerView").classList.contains("active")) refreshReaderArticleWords();
     closeEditCard();
     showToast(`Updated "${updated.word}"`, "Your changes were saved.", "OK");
