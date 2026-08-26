@@ -43,12 +43,27 @@ class Settings(BaseSettings):
     storage_bucket: str = "wordinary-dev"
     storage_region: str = "us-east-1"
     storage_presigned_expires_seconds: int = 900
+    openai_base_url: str | None = None
+    wody_model: str = "gpt-5-mini"
+    wody_temperature: float = 0.5
+    wody_timeout_seconds: int = 45
+    jina_api_key: str | None = None
+    jina_timeout_seconds: int = 25
+    jina_max_tokens: int = 2500
 
     @field_validator("backend_cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: str | list[str]) -> list[str]:
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
+
+    @field_validator("openai_base_url", "jina_api_key", mode="before")
+    @classmethod
+    def blank_strings_to_none(cls, value: str | None) -> str | None:
+        if isinstance(value, str):
+            stripped = value.strip()
+            return stripped or None
         return value
 
     @model_validator(mode="after")

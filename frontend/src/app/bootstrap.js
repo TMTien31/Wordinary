@@ -199,6 +199,7 @@ function init() {
   setView("isleView");
   updateVideoSavedCount();
   ensureVideoPolling();
+  if (typeof initWody === "function") initWody();
   applyLanguage();
   observeI18n();
   if (!appSessionStorage.getItem("wordinary_seen") && !appSessionStorage.getItem("lingoleaf_seen")) {
