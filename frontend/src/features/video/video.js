@@ -96,7 +96,16 @@ async function copyWordinaryServerCommand() {
     await navigator.clipboard.writeText(command);
     showToast(state.language === "en" ? "Command copied" : "Đã sao chép lệnh", command, "✓");
   } catch (_) {
-    window.prompt(state.language === "en" ? "Copy this command" : "Sao chép lệnh này", command);
+    await appPrompt({
+      title: state.language === "en" ? "Copy this command" : "Sao chép lệnh này",
+      message: state.language === "en"
+        ? "Clipboard access was blocked, so copy it from here."
+        : "Trình duyệt chặn quyền clipboard, hãy sao chép lệnh ở đây.",
+      defaultValue: command,
+      confirmLabel: state.language === "en" ? "Done" : "Xong",
+      cancelLabel: state.language === "en" ? "Close" : "Đóng",
+      icon: "⌘",
+    });
   }
 }
 
@@ -769,4 +778,3 @@ async function handleCaptionSelection() {
 function updateVideoSavedCount() {
   $("#videoSavedCount").textContent = state.cards.filter(card => card.sourceType === "video").length;
 }
-

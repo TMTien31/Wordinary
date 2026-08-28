@@ -122,9 +122,20 @@ function attachEvents() {
     setEditImage(first);
     $("#editIconStatus").textContent = "icon gợi ý";
   });
-  $("#editDeleteCard").addEventListener("click", () => {
+  $("#editDeleteCard").addEventListener("click", async () => {
     const card = state.cards.find(c => c.id === state.editingCardId);
-    if (card && confirm(state.language === "en" ? `Delete the flashcard “${card.word}”?` : `Xóa flashcard “${card.word}”?`)) deleteCard(card.id);
+    if (!card) return;
+    const ok = await appConfirm({
+      title: state.language === "en" ? "Delete flashcard?" : "Xóa flashcard?",
+      message: state.language === "en"
+        ? `“${card.word}” will be removed from your vocabulary.`
+        : `“${card.word}” sẽ được gỡ khỏi bộ từ của bạn.`,
+      confirmLabel: state.language === "en" ? "Delete" : "Xóa",
+      cancelLabel: state.language === "en" ? "Cancel" : "Hủy",
+      icon: "×",
+      danger: true,
+    });
+    if (ok) deleteCard(card.id);
   });
   $("#articleBody").addEventListener("click", event => {
     const mark = event.target.closest("mark.saved-word");

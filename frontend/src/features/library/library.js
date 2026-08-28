@@ -247,8 +247,17 @@ async function openLibraryItem(itemId) {
 async function deleteLibraryItem(itemId) {
   const item = getLibraryItem(itemId);
   if (!item) return;
-  const message = state.language === "en" ? `Remove “${item.title}” from the library? Saved vocabulary will be kept.` : `Xóa “${item.title}” khỏi thư viện? Từ vựng đã lưu vẫn được giữ lại.`;
-  if (!confirm(message)) return;
+  const ok = await appConfirm({
+    title: state.language === "en" ? "Remove from library?" : "Xóa khỏi thư viện?",
+    message: state.language === "en"
+      ? `“${item.title}” will be removed. Saved vocabulary will be kept.`
+      : `“${item.title}” sẽ được gỡ khỏi thư viện. Từ vựng đã lưu vẫn được giữ lại.`,
+    confirmLabel: state.language === "en" ? "Remove" : "Xóa",
+    cancelLabel: state.language === "en" ? "Cancel" : "Hủy",
+    icon: "×",
+    danger: true,
+  });
+  if (!ok) return;
   if (item.storageSource === "api" && state.currentUser && getAuthToken()) {
     try {
       await libraryApiDeleteItem(item.id);

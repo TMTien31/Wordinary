@@ -25,6 +25,113 @@ function showToast(title, message, icon = "✨") {
   setTimeout(() => toast.remove(), 3800);
 }
 
+function localizeDialogText(value = "") {
+  return typeof translateUiString === "function" ? translateUiString(value) : value;
+}
+
+function ensureAppDialog() {
+  let root = $("#appDialog");
+  if (root) return root;
+  root = document.createElement("div");
+  root.id = "appDialog";
+  root.className = "app-dialog-backdrop";
+  root.setAttribute("aria-hidden", "true");
+  root.innerHTML = `
+    <form class="app-dialog" role="dialog" aria-modal="true" aria-labelledby="appDialogTitle">
+      <div class="app-dialog-icon" id="appDialogIcon" aria-hidden="true">?</div>
+      <div class="app-dialog-body">
+        <h2 id="appDialogTitle"></h2>
+        <p id="appDialogMessage"></p>
+        <input id="appDialogInput" class="app-dialog-input" />
+        <div class="app-dialog-actions">
+          <button id="appDialogCancel" class="cancel-btn" type="button">Cancel</button>
+          <button id="appDialogConfirm" class="import-btn" type="submit">OK</button>
+        </div>
+      </div>
+    </form>
+  `;
+  document.body.appendChild(root);
+  return root;
+}
+
+function showAppDialog(options = {}) {
+  const settings = typeof options === "string" ? { message: options } : options;
+  const type = settings.type || "alert";
+  const root = ensureAppDialog();
+  const dialog = $(".app-dialog", root);
+  const title = $("#appDialogTitle", root);
+  const message = $("#appDialogMessage", root);
+  const icon = $("#appDialogIcon", root);
+  const input = $("#appDialogInput", root);
+  const cancel = $("#appDialogCancel", root);
+  const confirm = $("#appDialogConfirm", root);
+  const hasInput = type === "prompt";
+
+  title.textContent = localizeDialogText(settings.title || (type === "confirm" ? "Confirm action" : "Notice"));
+  message.textContent = localizeDialogText(settings.message || "");
+  icon.textContent = settings.icon || (settings.danger ? "!" : "?");
+  input.value = settings.defaultValue ?? "";
+  input.placeholder = settings.placeholder || "";
+  input.hidden = !hasInput;
+  input.disabled = !hasInput;
+  cancel.hidden = type === "alert";
+  cancel.textContent = localizeDialogText(settings.cancelLabel || "Cancel");
+  confirm.textContent = localizeDialogText(settings.confirmLabel || (type === "prompt" ? "Create" : "OK"));
+  confirm.classList.toggle("danger", settings.danger === true);
+  dialog.classList.toggle("is-danger", settings.danger === true);
+
+  root.classList.add("show");
+  root.setAttribute("aria-hidden", "false");
+  setTimeout(() => (hasInput ? input : confirm).focus(), 0);
+
+  return new Promise(resolve => {
+    const cleanup = result => {
+      root.classList.remove("show");
+      root.setAttribute("aria-hidden", "true");
+      dialog.removeEventListener("submit", onSubmit);
+      cancel.removeEventListener("click", onCancel);
+      root.removeEventListener("mousedown", onBackdrop);
+      document.removeEventListener("keydown", onKeyDown);
+      resolve(result);
+    };
+    const onSubmit = event => {
+      event.preventDefault();
+      cleanup(hasInput ? input.value : true);
+    };
+    const onCancel = () => cleanup(hasInput ? null : false);
+    const onBackdrop = event => {
+      if (event.target === root) onCancel();
+    };
+    const onKeyDown = event => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCancel();
+      }
+    };
+    dialog.addEventListener("submit", onSubmit);
+    cancel.addEventListener("click", onCancel);
+    root.addEventListener("mousedown", onBackdrop);
+    document.addEventListener("keydown", onKeyDown);
+  });
+}
+
+function appConfirm(options = {}) {
+  return showAppDialog({ ...(typeof options === "string" ? { message: options } : options), type: "confirm" });
+}
+
+function appPrompt(options = {}, defaultValue = "") {
+  const settings = typeof options === "string" ? { title: options, defaultValue } : options;
+  return showAppDialog({ ...settings, type: "prompt" });
+}
+
+function appAlert(options = {}) {
+  return showAppDialog({ ...(typeof options === "string" ? { message: options } : options), type: "alert" });
+}
+
+window.appConfirm = appConfirm;
+window.appPrompt = appPrompt;
+window.appAlert = appAlert;
+
 function updateStats() {
   $("#navCardCount").textContent = state.cards.length;
   $("#navArticleCount").textContent = state.libraryItems.length;

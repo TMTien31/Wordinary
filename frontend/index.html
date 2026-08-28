@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0e1726" />
   <title>Wordinary</title>
-  <link rel="stylesheet" href="/src/styles/main.css?v=dictation-polish-1" />
+  <link rel="stylesheet" href="/src/styles/main.css?v=app-dialog-1" />
 
 </head>
 <body>
@@ -133,43 +133,25 @@
         <div class="page-heading isle-heading">
           <div>
             <h1>Your Isle</h1>
-            <p>Every saved word and practice round grows this place. XP unlocks new parts of the island.</p>
+            <p>The island builder is paused while we tune performance and polish the experience.</p>
           </div>
           <button class="tool-btn primary" data-view="readerView"><span>＋</span><span>Learn words</span></button>
         </div>
 
-        <div class="isle-layout">
-          <section class="isle-stage" aria-label="Your Isle progress">
-            <div class="isle-water-tiles" aria-hidden="true"></div>
-            <div class="isle-map" aria-hidden="true">
-              <img class="isle-piece isle-scene-layer isle-layer-1" data-unlock-level="1" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
-              <img class="isle-piece isle-scene-layer isle-layer-2" data-unlock-level="2" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
-              <img class="isle-piece isle-scene-layer isle-layer-3" data-unlock-level="3" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
-              <img class="isle-piece isle-scene-layer isle-layer-4" data-unlock-level="4" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
-              <img class="isle-piece isle-scene-layer isle-layer-5" data-unlock-level="5" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
-              <img class="isle-piece isle-scene-layer isle-layer-6" data-unlock-level="6" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
-              <img class="isle-piece isle-scene-layer isle-layer-7" data-unlock-level="7" src="/public/assets/isle/isle-nature-cutout.png" alt="" />
-              <img class="isle-piece isle-asset isle-wildlife" data-unlock-level="6" src="/public/assets/isle/cozy-wildlife.png" alt="" />
+        <section class="isle-maintenance-shell" aria-label="Your Isle maintenance notice">
+          <div class="isle-maintenance-card">
+            <div class="isle-maintenance-mark" aria-hidden="true">W</div>
+            <div>
+              <span class="isle-maintenance-kicker">Under maintenance</span>
+              <h2>Your Isle is taking a short break.</h2>
+              <p>
+                We are optimizing the island builder so it can handle more assets smoothly.
+                Your learning progress and saved vocabulary are still available.
+              </p>
+              <button class="tool-btn primary" data-view="readerView"><span>＋</span><span>Continue learning</span></button>
             </div>
-            <div class="isle-empty-note" id="isleEmptyNote">Save your first words to make the island appear.</div>
-          </section>
-
-          <aside class="isle-panel">
-            <div class="isle-level-row">
-              <div><h2 id="isleLevel">Level 0</h2><small id="isleNextUnlock">Next: Lagoon</small></div>
-              <strong id="isleXp">0 XP</strong>
-            </div>
-            <div class="isle-progress-track"><span id="isleProgressFill"></span></div>
-            <div class="goal-row"><span>Next unlock</span><strong id="isleProgressLabel">0/100 XP</strong></div>
-            <div class="isle-stat-grid">
-              <div class="isle-stat"><strong id="isleDaily">0/8</strong><span>today</span></div>
-              <div class="isle-stat"><strong id="isleStreak">0 days</strong><span>streak</span></div>
-              <div class="isle-stat"><strong id="isleDailyXp">0 XP</strong><span>today XP</span></div>
-            </div>
-            <div class="goal-row"><span>Unlocked pieces</span><strong id="isleUnlockedCount">0</strong></div>
-            <div class="isle-unlocks" id="isleUnlockList"></div>
-          </aside>
-        </div>
+          </div>
+        </section>
       </section>
 
       <section class="view" id="readerView">
@@ -745,17 +727,17 @@
   <script defer src="/src/infrastructure/api/wody-api.js?v=wody-1"></script>
   <script defer src="/src/infrastructure/repositories/library-repository.js?v=media-clean-1"></script>
   <script defer src="/src/core/persistence.js?v=reader-highlight-1"></script>
-  <script defer src="/src/shared/ui/ui.js?v=reader-highlight-1"></script>
-  <script defer src="/src/features/isle/isle.js?v=isle-1"></script>
+  <script defer src="/src/shared/ui/ui.js?v=app-dialog-1"></script>
+  <script defer src="/src/features/isle/isle.js?v=isle-2"></script>
   <script defer src="/src/features/reader/reader.js?v=reader-highlight-1"></script>
   <script defer src="/src/features/auth/auth.js?v=backend-source-1"></script>
   <script defer src="/src/infrastructure/api/learning-services.js"></script>
-  <script defer src="/src/features/vocabulary/vocabulary.js?v=vocab-api-2"></script>
+  <script defer src="/src/features/vocabulary/vocabulary.js?v=vocab-api-3"></script>
   <script defer src="/src/features/practice/practice.js?v=vocab-api-1"></script>
   <script defer src="/src/features/vocabulary/card-editor.js?v=vocab-api-2"></script>
   <script defer src="/src/features/reader/importer.js?v=backend-source-1"></script>
-  <script defer src="/src/features/library/library.js?v=media-clean-1"></script>
-  <script defer src="/src/features/video/video.js?v=media-clean-1"></script>
+  <script defer src="/src/features/library/library.js?v=app-dialog-1"></script>
+  <script defer src="/src/features/video/video.js?v=app-dialog-1"></script>
   <script defer src="/src/features/video/video-events.js?v=media-clean-1"></script>
   <script defer src="/src/features/dictation/dictation-checker.js?v=dictation-polish-1"></script>
   <script defer src="/src/features/dictation/dictation.js?v=dictation-polish-1"></script>
@@ -764,7 +746,7 @@
   <script defer src="/src/shared/i18n/translations.js?v=dictation-polish-1"></script>
   <script defer src="/src/shared/i18n/i18n.js"></script>
   <script defer src="/src/features/pdf/pdf.js?v=media-clean-1"></script>
-  <script defer src="/src/app/bootstrap.js?v=reader-highlight-1"></script>
+  <script defer src="/src/app/bootstrap.js?v=app-dialog-1"></script>
   <script defer src="/src/main.js"></script>
 </body>
 </html>

@@ -60,7 +60,7 @@ class VocabularyService:
         await record_learning_activity(
             self.session,
             user_id=user_id,
-            xp=12,
+            xp=10,
             saved_vocabulary=1,
         )
         await self.session.commit()

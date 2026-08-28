@@ -186,8 +186,8 @@ async function saveCurrentSelection() {
   };
   try {
     const card = upsertCard(apiVocabularyToCard(await vocabularyApiCreate(payload)));
-    state.xp += 12;
-    state.sessionXp += 12;
+    state.xp += 10;
+    state.sessionXp += 10;
     state.sessionSaved += 1;
     state.daily += 1;
     highlightSavedRange(s.range, card.id);
@@ -199,7 +199,7 @@ async function saveCurrentSelection() {
     refreshLearningProfile().catch(error => console.warn("Could not refresh learning profile", error));
     $("#saveWord").textContent = "✓ Đã lưu";
     $("#saveWord").classList.add("saved");
-    showToast(`Đã lưu “${card.word}”`, `+12 XP • ${card.translation}`, "🌱");
+    showToast(`Đã lưu “${card.word}”`, `+10 XP • ${card.translation}`, "🌱");
     if (state.daily === 8) showToast("Hoàn thành mục tiêu!", "Bạn đã hoàn thành 8 hoạt động học hôm nay.", "🏆");
   } catch (error) {
     showToast("Chưa lưu được từ", error.message || "Backend chưa nhận flashcard này.", "!");
