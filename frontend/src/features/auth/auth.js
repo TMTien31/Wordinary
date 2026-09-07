@@ -72,7 +72,9 @@ function completeAuth(user) {
   $("#authScreen").classList.add("is-hidden");
   $("#appShell").classList.remove("auth-locked");
   renderCurrentUser();
-  hydrateAccountData();
+  hydrateAccountData().finally(() => {
+    if (typeof maybeShowOnboarding === "function") maybeShowOnboarding();
+  });
 }
 
 async function hydrateAccountData() {
@@ -103,6 +105,7 @@ function showAuthScreen() {
 }
 
 function logoutUser() {
+  if (typeof closeOnboarding === "function") closeOnboarding({ markCompleted: false });
   if (typeof closeAccountMenu === "function") closeAccountMenu();
   clearAuthToken();
   showAuthScreen();

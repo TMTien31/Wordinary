@@ -19,3 +19,11 @@ function fetchCurrentUser() {
 function fetchLearningProfile() {
   return apiRequest("/users/me/profile");
 }
+
+function fetchOnboardingStatus() {
+  return apiRequest("/users/me/onboarding");
+}
+
+function completeOnboarding() {
+  return apiRequest("/users/me/onboarding/complete", { method: "POST" });
+}

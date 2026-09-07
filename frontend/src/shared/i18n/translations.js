@@ -48,6 +48,8 @@ const EN_TO_VI = {
   "Read": "Đọc",
   "Settings": "Cài đặt",
   "Profile": "Hồ sơ",
+  "User guide": "Hướng dẫn sử dụng",
+  "Replay the Wordinary walkthrough anytime.": "Xem lại hướng dẫn Wordinary bất cứ lúc nào.",
   "Log out": "Đăng xuất",
   "New reading": "Bài đọc mới",
   "Your vocabulary": "Từ vựng của bạn",

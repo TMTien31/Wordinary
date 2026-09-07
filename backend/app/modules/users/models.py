@@ -84,12 +84,21 @@ class UserSettings(TimestampMixin, Base):
         nullable=False,
         server_default="false",
     )
+    onboarding_completed_version: Mapped[int] = mapped_column(
+        SmallInteger,
+        nullable=False,
+        server_default="0",
+    )
 
     user: Mapped[User] = relationship(back_populates="settings")
 
     __table_args__ = (
         CheckConstraint("theme IN ('light', 'dark', 'system')", name="theme_values"),
         CheckConstraint("font_size BETWEEN 12 AND 32", name="font_size_range"),
+        CheckConstraint(
+            "onboarding_completed_version >= 0",
+            name="onboarding_completed_version_nonnegative",
+        ),
     )
 
 

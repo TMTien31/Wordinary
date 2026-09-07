@@ -84,6 +84,13 @@ def test_metadata_has_key_constraints_and_indexes() -> None:
     assert tables["caption_cues"].c.id.identity.always is True
     assert isinstance(tables["videos"].c.provider_metadata.type, sa.dialects.postgresql.JSONB)
     assert isinstance(tables["data_imports"].c.warnings.type, sa.dialects.postgresql.JSONB)
+    assert isinstance(
+        tables["user_settings"].c.onboarding_completed_version.type,
+        sa.SmallInteger,
+    )
+    assert "ck_user_settings_onboarding_completed_version_nonnegative" in _constraint_names(
+        "user_settings"
+    )
 
 
 def test_every_foreign_key_declares_ondelete() -> None:

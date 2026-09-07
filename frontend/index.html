@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0e1726" />
   <title>Wordinary</title>
-  <link rel="stylesheet" href="/src/styles/main.css?v=profile-menu-1" />
+  <link rel="stylesheet" href="/src/styles/main.css?v=onboarding-1" />
 
 </head>
 <body>
@@ -116,6 +116,11 @@
           <button class="account-menu-item" type="button" data-view="settingsView">
             <span aria-hidden="true">⚙</span>
             <span>Settings</span>
+            <b aria-hidden="true">›</b>
+          </button>
+          <button class="account-menu-item" id="openUserGuide" type="button">
+            <span aria-hidden="true">?</span>
+            <span>User guide</span>
             <b aria-hidden="true">›</b>
           </button>
           <div class="account-menu-divider"></div>
@@ -269,6 +274,11 @@
               <div class="profile-row"><span>Created</span><strong id="settingsProfileCreated">-</strong></div>
               <div class="profile-row"><span>Updated</span><strong id="settingsProfileUpdated">-</strong></div>
             </div>
+            <button class="profile-guide-button" id="openProfileGuide" type="button">
+              <span class="profile-guide-icon" aria-hidden="true">?</span>
+              <span><strong>User guide</strong><small>Replay the Wordinary walkthrough anytime.</small></span>
+              <b aria-hidden="true">›</b>
+            </button>
           </section>
 
           <section class="settings-card api-settings-card">
@@ -745,7 +755,7 @@
   <script defer src="/src/shared/dom.js"></script>
   <script defer src="/src/shared/markdown.js?v=markdown-1"></script>
   <script defer src="/src/infrastructure/api/client.js?v=auth-proxy-1"></script>
-  <script defer src="/src/infrastructure/api/auth-api.js"></script>
+  <script defer src="/src/infrastructure/api/auth-api.js?v=onboarding-1"></script>
   <script defer src="/src/infrastructure/api/library-api.js?v=backend-source-1"></script>
   <script defer src="/src/infrastructure/api/vocabulary-api.js?v=vocab-api-1"></script>
   <script defer src="/src/infrastructure/api/review-api.js?v=review-api-1"></script>
@@ -754,8 +764,9 @@
   <script defer src="/src/core/persistence.js?v=reader-highlight-1"></script>
   <script defer src="/src/shared/ui/ui.js?v=profile-menu-1"></script>
   <script defer src="/src/features/isle/isle.js?v=isle-2"></script>
-  <script defer src="/src/features/reader/reader.js?v=reader-highlight-1"></script>
-  <script defer src="/src/features/auth/auth.js?v=profile-menu-1"></script>
+  <script defer src="/src/features/reader/reader.js?v=onboarding-1"></script>
+  <script defer src="/src/features/auth/auth.js?v=onboarding-1"></script>
+  <script defer src="/src/features/onboarding/onboarding.js?v=onboarding-1"></script>
   <script defer src="/src/infrastructure/api/learning-services.js"></script>
   <script defer src="/src/features/vocabulary/vocabulary.js?v=vocab-api-3"></script>
   <script defer src="/src/features/practice/practice.js?v=vocab-api-1"></script>
@@ -768,10 +779,10 @@
   <script defer src="/src/features/dictation/dictation.js?v=dictation-polish-1"></script>
   <script defer src="/src/features/pdf/pdf-state.js?v=media-clean-1"></script>
   <script defer src="/src/features/wody/wody.js?v=wody-tavily-1"></script>
-  <script defer src="/src/shared/i18n/translations.js?v=wody-tavily-1"></script>
+  <script defer src="/src/shared/i18n/translations.js?v=onboarding-1"></script>
   <script defer src="/src/shared/i18n/i18n.js?v=profile-menu-1"></script>
   <script defer src="/src/features/pdf/pdf.js?v=media-clean-1"></script>
-  <script defer src="/src/app/bootstrap.js?v=profile-menu-1"></script>
+  <script defer src="/src/app/bootstrap.js?v=onboarding-1"></script>
   <script defer src="/src/main.js"></script>
 </body>
 </html>

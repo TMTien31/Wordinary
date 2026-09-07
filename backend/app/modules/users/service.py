@@ -13,7 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.users.models import DailyActivity
 from app.modules.users.models import LearningProfile
+from app.modules.users.models import UserSettings
 from app.modules.users.schemas import LearningProfileResponse
+from app.modules.users.schemas import OnboardingStatusResponse
+
+
+ONBOARDING_CURRENT_VERSION = 1
 
 
 async def get_learning_profile_response(
@@ -25,6 +30,34 @@ async def get_learning_profile_response(
     today = _today(profile.timezone)
     daily = await _get_daily_activity(session, user_id=user_id, activity_date=today)
     return _profile_response(profile, daily)
+
+
+async def get_onboarding_status(
+    session: AsyncSession,
+    *,
+    user_id: UUID,
+) -> OnboardingStatusResponse:
+    settings = await _get_or_create_settings(session, user_id=user_id)
+    completed_version = settings.onboarding_completed_version or 0
+    return OnboardingStatusResponse(
+        completed=completed_version >= ONBOARDING_CURRENT_VERSION,
+        completed_version=completed_version,
+        current_version=ONBOARDING_CURRENT_VERSION,
+    )
+
+
+async def complete_onboarding(
+    session: AsyncSession,
+    *,
+    user_id: UUID,
+) -> OnboardingStatusResponse:
+    settings = await _get_or_create_settings(session, user_id=user_id)
+    settings.onboarding_completed_version = max(
+        settings.onboarding_completed_version or 0,
+        ONBOARDING_CURRENT_VERSION,
+    )
+    await session.commit()
+    return await get_onboarding_status(session, user_id=user_id)
 
 
 async def record_learning_activity(
@@ -68,6 +101,15 @@ async def _get_or_create_profile(session: AsyncSession, *, user_id: UUID) -> Lea
         session.add(profile)
         await session.flush()
     return profile
+
+
+async def _get_or_create_settings(session: AsyncSession, *, user_id: UUID) -> UserSettings:
+    settings = await session.get(UserSettings, user_id)
+    if settings is None:
+        settings = UserSettings(user_id=user_id, onboarding_completed_version=0)
+        session.add(settings)
+        await session.flush()
+    return settings
 
 
 async def _get_daily_activity(
@@ -145,4 +187,9 @@ def _profile_response(profile: LearningProfile, daily: DailyActivity | None) -> 
     )
 
 
-__all__ = ["get_learning_profile_response", "record_learning_activity"]
+__all__ = [
+    "complete_onboarding",
+    "get_learning_profile_response",
+    "get_onboarding_status",
+    "record_learning_activity",
+]

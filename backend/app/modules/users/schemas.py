@@ -40,6 +40,12 @@ class UserSettingsResponse(APIModel):
     main_sidebar_collapsed: bool
 
 
+class OnboardingStatusResponse(APIModel):
+    completed: bool
+    completed_version: int = Field(ge=0)
+    current_version: int = Field(ge=1)
+
+
 class LearningProfileUpdate(APIModel):
     native_language: LanguageCode | None = None
     target_language: LanguageCode | None = None

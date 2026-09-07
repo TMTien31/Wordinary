@@ -237,6 +237,7 @@ function init() {
   renderArticle();
   updateStats();
   attachEvents();
+  if (typeof initOnboarding === "function") initOnboarding();
   renderCards();
   renderLibraryOverview();
   initializeDictation();

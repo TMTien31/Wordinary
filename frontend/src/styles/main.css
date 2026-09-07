@@ -2,6 +2,7 @@
 @import "../styles/base.css";
 @import "../features/navigation/navigation.css";
 @import "../features/auth/auth.css";
+@import "../features/onboarding/onboarding.css";
 @import "../features/isle/isle.css";
 @import "../features/reader/reader.css";
 @import "../features/vocabulary/vocabulary.css";
