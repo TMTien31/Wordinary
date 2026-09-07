@@ -66,10 +66,10 @@ Available tools:
 - search_saved_words: find vocabulary the current signed-in user saved.
 - search_library: find the current user's articles, PDFs, and videos.
 - get_learning_snapshot: summarize the current user's learning counts and due reviews.
-- jina_web_search: search the public web via Jina when the answer needs current outside information.
+- web_search: search the public web when the answer needs current outside information.
 - create_vocabulary_item: create a manual vocabulary flashcard for the current user.
 - update_vocabulary_item: fill missing fields or explicitly update one saved vocabulary item.
-- create_article_from_web_search: find an English public web article with Jina Reader and save it to Library.
+- create_article_from_web_search: find an English public web article and save it to Library.
 - delete_vocabulary_item: prepare an in-chat confirmation action for deleting one saved vocabulary item.
 - delete_library_item: prepare an in-chat confirmation action for deleting one library item.
 
@@ -94,7 +94,7 @@ Privacy and guardrails:
   instead of asking a clarifying question.
 - If a tool returns an error, explain that specific limitation to the user and suggest a narrower retry;
   do not pretend the tool was not called or say you will check later.
-- Call jina_web_search at most once per user message. Use the result you get; do not keep refining
+- Call web_search at most once per user message. Use the result you get; do not keep refining
   search queries in the same turn.
 - When the user says "hom nay", "toi nay", "today", or "tonight", include the exact date in the web search query.
 - For create_vocabulary_item, provide complete useful fields yourself when possible: translation, definition,
@@ -136,6 +136,7 @@ class WodyService:
             temperature=settings.wody_temperature,
             timeout=settings.wody_timeout_seconds,
             base_url=settings.openai_base_url,
+            reasoning_effort=settings.wody_reasoning_effort,
         )
         agent = create_agent(
             model=model,
@@ -224,7 +225,7 @@ class WodyService:
         return WodyExecuteActionResponse(ok=False, message="Action này chưa được hỗ trợ.")
 
     def _build_tools(self, user_id: UUID):
-        jina_cached_result: str | None = None
+        web_cached_result: str | None = None
 
         @tool
         async def search_saved_words(query: str = "", source_type: str = "all", limit: int = 8) -> str:
@@ -538,47 +539,115 @@ class WodyService:
             return output
 
         @tool
-        async def create_article_from_web_search(topic: str, source_url: str = "", title: str = "") -> str:
-            """Search the web with Jina, read a public page, and save it as an article in the current user's Library."""
+        async def create_article_from_web_search(
+            topic: str,
+            source_url: str = "",
+            title: str = "",
+        ) -> str:
+            """Search the web with Tavily, read a page, and save it to the user's Library."""
             started = _log_tool_start(
                 "create_article_from_web_search",
                 user_id,
                 {"topic": topic, "source_url": source_url, "title": title},
             )
-            if not settings.jina_api_key:
-                output = _json({"created": False, "error": "JINA_API_KEY is not configured."})
-                _log_tool_end("create_article_from_web_search", user_id, started, output)
-                return output
-            target_url = _extract_url(source_url)
-            search_text = ""
-            if not target_url:
-                search_text = await _jina_search_text(_english_article_search_query(topic))
-                target_url = _first_jina_source_url(search_text)
-            if not target_url:
-                output = _json({"created": False, "error": "No readable source URL found.", "search": _clip(search_text, 900)})
-                _log_tool_end("create_article_from_web_search", user_id, started, output)
-                return output
-            try:
-                article_text = await _jina_read_url(target_url)
-            except Exception as exc:
-                logger.exception("wody.tool.error name=create_article_from_web_search user_id=%s error=%s", user_id, exc)
-                output = _json({"created": False, "error": "Could not read the source page with Jina.", "source_url": target_url})
-                _log_tool_end("create_article_from_web_search", user_id, started, output)
-                return output
-            content = _article_content_from_jina(article_text)
-            if len(content.split()) < 80:
+            if not settings.tavily_api_key:
                 output = _json(
                     {
                         "created": False,
-                        "error": "The selected page did not provide enough readable article text.",
-                        "source_url": target_url,
+                        "error": (
+                            "TAVILY_API_KEY is not configured. Tavily is the primary "
+                            "web provider for article creation."
+                        ),
                     }
                 )
                 _log_tool_end("create_article_from_web_search", user_id, started, output)
                 return output
+            target_url = _extract_url(source_url)
+            search_payload: dict[str, Any] = {}
+            candidates: list[dict[str, Any]]
+            if target_url:
+                candidates = [{"url": target_url, "title": title or topic, "content": ""}]
+            else:
+                try:
+                    search_payload = await _tavily_search_json(
+                        _english_article_search_query(topic),
+                        max_results=_clamp(settings.tavily_max_results, 1, 8),
+                        include_answer=False,
+                        include_raw_content=False,
+                    )
+                except Exception as exc:
+                    logger.exception(
+                        (
+                            "wody.tool.error name=create_article_from_web_search "
+                            "provider=tavily user_id=%s error=%s"
+                        ),
+                        user_id,
+                        exc,
+                    )
+                    output = _json(
+                        {
+                            "created": False,
+                            "error": "Tavily search failed before an article source was found.",
+                        }
+                    )
+                    _log_tool_end("create_article_from_web_search", user_id, started, output)
+                    return output
+                candidates = _tavily_search_results(search_payload)
+            if not candidates:
+                output = _json(
+                    {
+                        "created": False,
+                        "error": "No readable source URL found.",
+                        "search": _clip(_json(search_payload), 900),
+                    }
+                )
+                _log_tool_end("create_article_from_web_search", user_id, started, output)
+                return output
+
+            article: dict[str, str] | None = None
+            errors: list[str] = []
+            for candidate in candidates[:3]:
+                candidate_url = _extract_url(str(candidate.get("url") or ""))
+                if not candidate_url:
+                    continue
+                try:
+                    extract_payload = await _tavily_extract_json(candidate_url)
+                except Exception as exc:
+                    logger.exception(
+                        (
+                            "wody.tool.error name=create_article_from_web_search "
+                            "provider=tavily_extract user_id=%s url=%s error=%s"
+                        ),
+                        user_id,
+                        candidate_url,
+                        exc,
+                    )
+                    errors.append(f"{candidate_url}: extract failed")
+                    continue
+                article = _article_from_tavily(
+                    extract_payload,
+                    fallback_url=candidate_url,
+                    fallback_title=str(title or candidate.get("title") or topic),
+                    fallback_content=str(candidate.get("content") or ""),
+                )
+                if len(article["content"].split()) >= 80:
+                    break
+                errors.append(f"{candidate_url}: not enough readable text")
+                article = None
+
+            if article is None:
+                output = _json(
+                    {
+                        "created": False,
+                        "error": "Tavily could not extract enough readable article text.",
+                        "details": errors[-3:],
+                    }
+                )
+                _log_tool_end("create_article_from_web_search", user_id, started, output)
+                return output
+
             article_title = (
-                _clean_article_title(title or _first_jina_title(article_text) or _first_jina_title(search_text) or topic)
-                or _clean_article_title(topic)
+                _clean_article_title(title or article["title"] or topic)
                 or "Untitled article"
             )
             async with AsyncSessionLocal() as tool_session:
@@ -586,8 +655,8 @@ class WodyService:
                     user_id=user_id,
                     data=ArticleCreate(
                         title=_clip(article_title, 240),
-                        content=content,
-                        source_url=target_url,
+                        content=article["content"],
+                        source_url=article["url"],
                         import_method=ImportMethod.URL,
                     ),
                 )
@@ -670,74 +739,58 @@ class WodyService:
             return output
 
         @tool
-        async def jina_web_search(query: str, limit: int = 3) -> str:
-            """Search the public web through Jina Search for current outside information."""
-            nonlocal jina_cached_result
-            if jina_cached_result is not None:
+        async def web_search(query: str, limit: int = 3) -> str:
+            """Search the public web through Tavily for current outside information."""
+            nonlocal web_cached_result
+            if web_cached_result is not None:
                 logger.info(
-                    "wody.tool.cache_hit name=jina_web_search user_id=%s result=%s",
+                    "wody.tool.cache_hit name=web_search user_id=%s result=%s",
                     user_id,
-                    _preview(jina_cached_result, TOOL_RESULT_LOG_LIMIT),
+                    _preview(web_cached_result, TOOL_RESULT_LOG_LIMIT),
                 )
-                return jina_cached_result
-            started = _log_tool_start("jina_web_search", user_id, {"query": query, "limit": limit})
-            if not settings.jina_api_key:
-                output = _json(
-                    {
-                        "error": "JINA_API_KEY is not configured. Create a free Jina key and set it to enable web search.",
-                    }
-                )
-                jina_cached_result = output
-                _log_tool_end("jina_web_search", user_id, started, output)
-                return output
-            capped_limit = _clamp(limit, 1, 5)
-            headers = {
-                "Accept": "text/plain; charset=utf-8",
-                "Authorization": f"Bearer {settings.jina_api_key}",
-                "User-Agent": "Wordinary-Wody/0.1",
-                "X-Timeout": str(_clamp(settings.jina_timeout_seconds, 5, 120)),
-                "X-Max-Tokens": str(_clamp(settings.jina_max_tokens, 500, 8000)),
-                "X-Respond-Timing": "visible-content",
-                "X-Retain-Images": "none",
-            }
-            errors: list[str] = []
-            for attempt, search_query in enumerate(_jina_query_variants(query), start=1):
-                url = "https://s.jina.ai/" + urllib.parse.quote(search_query.strip())
-                logger.info(
-                    "wody.tool.attempt name=jina_web_search user_id=%s attempt=%s query=%s",
-                    user_id,
-                    attempt,
-                    _preview(search_query, 220),
-                )
+                return web_cached_result
+            started = _log_tool_start("web_search", user_id, {"query": query, "limit": limit})
+            if settings.tavily_api_key:
                 try:
-                    text = await asyncio.to_thread(
-                        _fetch_text,
-                        url,
-                        headers,
-                        _clamp(settings.jina_timeout_seconds + 5, 10, 130),
+                    payload = await _tavily_search_json(
+                        query,
+                        max_results=_clamp(limit, 1, 5),
+                        include_answer=True,
+                        include_raw_content=False,
                     )
-                    output = _clip(text, MAX_TOOL_TEXT // max(1, capped_limit))
-                    jina_cached_result = output
-                    _log_tool_end("jina_web_search", user_id, started, output)
-                    return output
-                except urllib.error.HTTPError as exc:
-                    errors.append(f"HTTP {exc.code}")
-                except urllib.error.URLError as exc:
-                    errors.append(f"network error: {exc.reason}")
-                except TimeoutError:
-                    errors.append("timeout")
+                    web_cached_result = _clip(
+                        _json(_tavily_web_search_output(payload)),
+                        MAX_TOOL_TEXT,
+                    )
+                    _log_tool_end("web_search", user_id, started, web_cached_result)
+                    return web_cached_result
                 except Exception as exc:
-                    logger.exception("wody.tool.error name=jina_web_search user_id=%s error=%s", user_id, exc)
-                    errors.append("unexpected error")
+                    logger.exception(
+                        "wody.tool.error name=web_search provider=tavily user_id=%s error=%s",
+                        user_id,
+                        exc,
+                    )
+                    output = _json({"error": "Tavily search failed.", "provider": "tavily"})
+                    web_cached_result = output
+                    _log_tool_end("web_search", user_id, started, output)
+                    return output
+
+            if settings.jina_api_key:
+                output = await _jina_web_search_compat(user_id=user_id, query=query, limit=limit)
+                web_cached_result = output
+                _log_tool_end("web_search", user_id, started, output)
+                return output
+
             output = _json(
                 {
-                    "error": "Jina search failed after retries.",
-                    "attempts": len(_jina_query_variants(query)),
-                    "details": errors[-3:],
+                    "error": (
+                        "TAVILY_API_KEY is not configured. JINA_API_KEY is also "
+                        "unavailable as a temporary fallback."
+                    ),
                 }
             )
-            jina_cached_result = output
-            _log_tool_end("jina_web_search", user_id, started, output)
+            web_cached_result = output
+            _log_tool_end("web_search", user_id, started, output)
             return output
 
         return [
@@ -749,7 +802,7 @@ class WodyService:
             create_article_from_web_search,
             delete_vocabulary_item,
             delete_library_item,
-            jina_web_search,
+            web_search,
         ]
 
 
@@ -757,6 +810,132 @@ def _fetch_text(url: str, headers: dict[str, str], timeout_seconds: int) -> str:
     request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
         return response.read().decode("utf-8", errors="replace")
+
+
+async def _jina_web_search_compat(*, user_id: UUID, query: str, limit: int) -> str:
+    capped_limit = _clamp(limit, 1, 5)
+    headers = {
+        "Accept": "text/plain; charset=utf-8",
+        "Authorization": f"Bearer {settings.jina_api_key}",
+        "User-Agent": "Wordinary-Wody/0.1",
+        "X-Timeout": str(_clamp(settings.jina_timeout_seconds, 5, 120)),
+        "X-Max-Tokens": str(_clamp(settings.jina_max_tokens, 500, 8000)),
+        "X-Respond-Timing": "visible-content",
+        "X-Retain-Images": "none",
+    }
+    errors: list[str] = []
+    for attempt, search_query in enumerate(_jina_query_variants(query), start=1):
+        url = "https://s.jina.ai/" + urllib.parse.quote(search_query.strip())
+        logger.info(
+            "wody.tool.attempt name=web_search provider=jina user_id=%s attempt=%s query=%s",
+            user_id,
+            attempt,
+            _preview(search_query, 220),
+        )
+        try:
+            text = await asyncio.to_thread(
+                _fetch_text,
+                url,
+                headers,
+                _clamp(settings.jina_timeout_seconds + 5, 10, 130),
+            )
+            return _clip(
+                _json(
+                    {
+                        "provider": "jina",
+                        "fallback": True,
+                        "content": _clip(text, MAX_TOOL_TEXT // max(1, capped_limit)),
+                    }
+                ),
+                MAX_TOOL_TEXT,
+            )
+        except urllib.error.HTTPError as exc:
+            errors.append(f"HTTP {exc.code}")
+        except urllib.error.URLError as exc:
+            errors.append(f"network error: {exc.reason}")
+        except TimeoutError:
+            errors.append("timeout")
+        except Exception as exc:
+            logger.exception(
+                "wody.tool.error name=web_search provider=jina user_id=%s error=%s",
+                user_id,
+                exc,
+            )
+            errors.append("unexpected error")
+    return _json(
+        {
+            "error": "Jina fallback search failed after retries.",
+            "provider": "jina",
+            "attempts": len(_jina_query_variants(query)),
+            "details": errors[-3:],
+        }
+    )
+
+
+async def _tavily_search_json(
+    query: str,
+    *,
+    max_results: int,
+    include_answer: bool,
+    include_raw_content: bool,
+) -> dict[str, Any]:
+    payload = {
+        "query": " ".join(query.split()),
+        "search_depth": settings.tavily_search_depth,
+        "max_results": _clamp(max_results, 1, 20),
+        "include_answer": "basic" if include_answer else False,
+        "include_raw_content": "markdown" if include_raw_content else False,
+        "include_images": False,
+        "auto_parameters": False,
+    }
+    return await asyncio.to_thread(
+        _fetch_json,
+        "https://api.tavily.com/search",
+        _tavily_headers(),
+        payload,
+        _clamp(settings.tavily_timeout_seconds + 5, 10, 65),
+    )
+
+
+async def _tavily_extract_json(source_url: str) -> dict[str, Any]:
+    payload = {
+        "urls": source_url,
+        "extract_depth": "basic",
+        "format": "markdown",
+        "include_images": False,
+        "include_favicon": False,
+        "timeout": float(_clamp(settings.tavily_timeout_seconds, 1, 60)),
+    }
+    return await asyncio.to_thread(
+        _fetch_json,
+        "https://api.tavily.com/extract",
+        _tavily_headers(),
+        payload,
+        _clamp(settings.tavily_timeout_seconds + 5, 10, 65),
+    )
+
+
+def _tavily_headers() -> dict[str, str]:
+    return {
+        "Accept": "application/json",
+        "Authorization": f"Bearer {settings.tavily_api_key}",
+        "Content-Type": "application/json",
+        "User-Agent": "Wordinary-Wody/0.1",
+    }
+
+
+def _fetch_json(
+    url: str,
+    headers: dict[str, str],
+    payload: dict[str, Any],
+    timeout_seconds: int,
+) -> dict[str, Any]:
+    data = json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(url, data=data, headers=headers, method="POST")
+    with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+        body = response.read().decode("utf-8", errors="replace")
+    decoded = json.loads(body)
+    return decoded if isinstance(decoded, dict) else {"data": decoded}
 
 
 async def _jina_search_text(query: str) -> str:
@@ -1035,6 +1214,81 @@ def _library_item_summary(item: LibraryItem) -> dict[str, Any]:
         "type": item.type,
         "source_url": item.source_url or "",
     }
+
+
+def _tavily_web_search_output(payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "provider": "tavily",
+        "query": payload.get("query") or "",
+        "answer": _clip(str(payload.get("answer") or ""), 900),
+        "results": [
+            {
+                "title": _clip(str(item.get("title") or ""), 180),
+                "url": item.get("url") or "",
+                "content": _clip(str(item.get("content") or item.get("raw_content") or ""), 700),
+                "score": item.get("score"),
+                "published_date": item.get("published_date") or "",
+            }
+            for item in _tavily_search_results(payload)
+        ],
+        "usage": payload.get("usage") or {},
+    }
+
+
+def _tavily_search_results(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    raw_results = payload.get("results")
+    if not isinstance(raw_results, list):
+        return []
+    results = [
+        item
+        for item in raw_results
+        if isinstance(item, dict) and _extract_url(str(item.get("url") or ""))
+    ]
+    return sorted(results, key=lambda item: _numeric_score(item.get("score")), reverse=True)
+
+
+def _numeric_score(value: Any) -> float:
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _article_from_tavily(
+    payload: dict[str, Any],
+    *,
+    fallback_url: str,
+    fallback_title: str,
+    fallback_content: str,
+) -> dict[str, str]:
+    results = payload.get("results")
+    result = (
+        results[0]
+        if isinstance(results, list) and results and isinstance(results[0], dict)
+        else {}
+    )
+    raw_content = str(result.get("raw_content") or fallback_content or "")
+    return {
+        "url": _extract_url(str(result.get("url") or fallback_url)) or fallback_url,
+        "title": _clean_article_title(str(result.get("title") or fallback_title)),
+        "content": _article_content_from_tavily(raw_content),
+    }
+
+
+def _article_content_from_tavily(text: str) -> str:
+    lines = []
+    for raw_line in str(text or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith(("Title:", "URL Source:", "Published Time:", "Markdown Content:")):
+            continue
+        if _is_article_noise_line(line):
+            continue
+        cleaned = _clean_markdown_text(line)
+        if cleaned:
+            lines.append(cleaned)
+    return _clip_content("\n\n".join(_dedupe_preserving_order(lines)), 25000)
 
 
 def _first_jina_source_url(text: str) -> str:

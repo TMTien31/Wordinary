@@ -7,7 +7,7 @@ function initializeAuthUi() {
   $("#authSignupForm").addEventListener("submit", event => handleAuthSubmit(event, "signup"));
   $("#showSignup").addEventListener("click", () => setAuthMode("signup"));
   $("#showLogin").addEventListener("click", () => setAuthMode("login"));
-  $("#logoutButton").addEventListener("click", logoutUser);
+  $("#logoutButton")?.addEventListener("click", logoutUser);
 
   const token = getAuthToken();
   if (!token) {
@@ -103,6 +103,7 @@ function showAuthScreen() {
 }
 
 function logoutUser() {
+  if (typeof closeAccountMenu === "function") closeAccountMenu();
   clearAuthToken();
   showAuthScreen();
   setAuthMode("login");
@@ -113,8 +114,13 @@ function renderCurrentUser() {
   const user = state.currentUser;
   const name = user?.displayName || "Signed out";
   const email = user?.email || "";
-  $("#currentUserName").textContent = name;
-  $("#currentUserEmail").textContent = email;
+  const initial = (name.trim()[0] || "W").toUpperCase();
+  if ($("#currentUserName")) $("#currentUserName").textContent = name;
+  if ($("#currentUserEmail")) $("#currentUserEmail").textContent = email;
+  if ($("#sidebarProfileInitial")) $("#sidebarProfileInitial").textContent = initial;
+  if ($("#accountMenuInitial")) $("#accountMenuInitial").textContent = initial;
+  if ($("#accountMenuName")) $("#accountMenuName").textContent = name;
+  if ($("#accountMenuEmail")) $("#accountMenuEmail").textContent = email || "-";
   renderSettingsProfile();
 }
 

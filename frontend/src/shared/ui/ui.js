@@ -143,8 +143,8 @@ function updateStats() {
   $("#sessionWords").textContent = state.sessionSaved;
   $("#sessionXp").textContent = state.sessionXp;
   const dailyGoal = Number(state.dailyGoal) || 8;
-  $("#goalText").textContent = `${Math.min(state.daily, dailyGoal)}/${dailyGoal}`;
-  $("#goalFill").style.width = `${Math.min(state.daily / dailyGoal * 100, 100)}%`;
+  if ($("#goalText")) $("#goalText").textContent = `${Math.min(state.daily, dailyGoal)}/${dailyGoal}`;
+  if ($("#goalFill")) $("#goalFill").style.width = `${Math.min(state.daily / dailyGoal * 100, 100)}%`;
   renderSavedPreview();
   if (typeof renderYourIsle === "function") renderYourIsle();
   if (typeof renderReaderArticleWords === "function") renderReaderArticleWords();

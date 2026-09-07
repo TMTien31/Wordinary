@@ -64,7 +64,7 @@ function renderWodyMessages() {
   const messages = getWodyMessages();
   const initial = {
     role: "assistant",
-    content: "Xin chào, mình là Wody. Mình có thể tìm từ đã lưu, lục library, tóm tắt tiến độ, tra web bằng Jina, thêm/sửa flashcard, và thêm article tiếng Anh từ web. Nếu xóa gì đó, mình sẽ đưa nút xác nhận ngay trong chat. Hỏi tự nhiên nha."
+    content: "Xin chào, mình là Wody. Mình có thể tìm từ đã lưu, lục library, tóm tắt tiến độ, tra web, thêm/sửa flashcard, và thêm article tiếng Anh từ web. Nếu xóa gì đó, mình sẽ đưa nút xác nhận ngay trong chat. Hỏi tự nhiên nha."
   };
   const visibleMessages = messages.length ? messages : [initial];
   messagesRoot.innerHTML = [

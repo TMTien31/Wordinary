@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0e1726" />
   <title>Wordinary</title>
-  <link rel="stylesheet" href="/src/styles/main.css?v=app-dialog-1" />
+  <link rel="stylesheet" href="/src/styles/main.css?v=profile-menu-1" />
 
 </head>
 <body>
@@ -98,16 +98,40 @@
         <button class="nav-btn" data-view="dictationView"><span class="nav-icon">⌁</span><span class="nav-text">Dictation</span><span class="nav-count" id="navDictationCount">0</span></button>
       </nav>
 
-      <div class="nav-label nav-label-spaced">System</div>
-      <nav class="nav-list">
-        <button class="nav-btn" data-view="settingsView"><span class="nav-icon">⚙</span><span class="nav-text">Settings</span></button>
-      </nav>
-
-      <div class="sidebar-card">
-        <b>🎯 Today&apos;s goal</b>
-        <p>Save or review 8 words to keep your learning streak.</p>
-        <div class="goal-row"><span>Progress</span><strong id="goalText">0/8</strong></div>
-        <div class="goal-track"><div class="goal-fill" id="goalFill"></div></div>
+      <div class="sidebar-account" id="sidebarAccount">
+        <div class="account-popover is-hidden" id="accountMenu" aria-hidden="true">
+          <div class="account-popover-head">
+            <span class="account-avatar" id="accountMenuInitial" aria-hidden="true">W</span>
+            <div>
+              <strong id="accountMenuName">Not signed in</strong>
+              <small id="accountMenuEmail">-</small>
+            </div>
+          </div>
+          <div class="account-menu-divider"></div>
+          <button class="account-menu-item" type="button" data-view="settingsView">
+            <span aria-hidden="true">◎</span>
+            <span>Profile</span>
+            <b aria-hidden="true">›</b>
+          </button>
+          <button class="account-menu-item" type="button" data-view="settingsView">
+            <span aria-hidden="true">⚙</span>
+            <span>Settings</span>
+            <b aria-hidden="true">›</b>
+          </button>
+          <div class="account-menu-divider"></div>
+          <button class="account-menu-item danger" id="logoutButton" type="button">
+            <span aria-hidden="true">↪</span>
+            <span>Log out</span>
+          </button>
+        </div>
+        <button class="account-trigger" id="accountMenuButton" type="button" aria-expanded="false" aria-controls="accountMenu">
+          <span class="account-avatar" id="sidebarProfileInitial" aria-hidden="true">W</span>
+          <span class="account-copy">
+            <strong id="currentUserName">Not signed in</strong>
+            <small id="currentUserEmail"></small>
+          </span>
+          <span class="account-chevron" aria-hidden="true">›</span>
+        </button>
       </div>
     </aside>
 
@@ -122,10 +146,6 @@
           <div class="xp-chip"><span>✦</span><span id="xpCount">120 XP</span></div>
           <button class="language-toggle" id="languageToggle" title="Change language"><span aria-hidden="true">文</span><strong id="languageCode">EN</strong></button>
           <button class="round-btn" id="themeToggle" title="Toggle appearance">☾</button>
-          <div class="user-menu">
-            <div class="user-chip"><strong id="currentUserName">Not signed in</strong><small id="currentUserEmail"></small></div>
-            <button class="logout-btn" id="logoutButton" type="button">Logout</button>
-          </div>
         </div>
       </header>
 
@@ -649,7 +669,7 @@
 
       <div class="tab-panel" id="urlPanel">
         <div class="field"><label>Article URL</label><input id="articleUrl" type="url" placeholder="https://example.com/article" /></div>
-        <div class="url-note">URL import uses Jina Reader to turn public pages into readable text. Pages with paywalls, bot protection, or access restrictions may not import successfully.</div>
+        <div class="url-note">URL import turns public pages into readable text. Pages with paywalls, bot protection, or access restrictions may not import successfully.</div>
       </div>
 
       <div class="modal-actions"><button class="cancel-btn" id="cancelImport">Cancel</button><button class="import-btn" id="doImport">Import article</button></div>
@@ -727,10 +747,10 @@
   <script defer src="/src/infrastructure/api/wody-api.js?v=wody-1"></script>
   <script defer src="/src/infrastructure/repositories/library-repository.js?v=media-clean-1"></script>
   <script defer src="/src/core/persistence.js?v=reader-highlight-1"></script>
-  <script defer src="/src/shared/ui/ui.js?v=app-dialog-1"></script>
+  <script defer src="/src/shared/ui/ui.js?v=profile-menu-1"></script>
   <script defer src="/src/features/isle/isle.js?v=isle-2"></script>
   <script defer src="/src/features/reader/reader.js?v=reader-highlight-1"></script>
-  <script defer src="/src/features/auth/auth.js?v=backend-source-1"></script>
+  <script defer src="/src/features/auth/auth.js?v=profile-menu-1"></script>
   <script defer src="/src/infrastructure/api/learning-services.js"></script>
   <script defer src="/src/features/vocabulary/vocabulary.js?v=vocab-api-3"></script>
   <script defer src="/src/features/practice/practice.js?v=vocab-api-1"></script>
@@ -742,11 +762,11 @@
   <script defer src="/src/features/dictation/dictation-checker.js?v=dictation-polish-1"></script>
   <script defer src="/src/features/dictation/dictation.js?v=dictation-polish-1"></script>
   <script defer src="/src/features/pdf/pdf-state.js?v=media-clean-1"></script>
-  <script defer src="/src/features/wody/wody.js?v=wody-1"></script>
-  <script defer src="/src/shared/i18n/translations.js?v=dictation-polish-1"></script>
-  <script defer src="/src/shared/i18n/i18n.js"></script>
+  <script defer src="/src/features/wody/wody.js?v=wody-tavily-1"></script>
+  <script defer src="/src/shared/i18n/translations.js?v=wody-tavily-1"></script>
+  <script defer src="/src/shared/i18n/i18n.js?v=profile-menu-1"></script>
   <script defer src="/src/features/pdf/pdf.js?v=media-clean-1"></script>
-  <script defer src="/src/app/bootstrap.js?v=app-dialog-1"></script>
+  <script defer src="/src/app/bootstrap.js?v=profile-menu-1"></script>
   <script defer src="/src/main.js"></script>
 </body>
 </html>

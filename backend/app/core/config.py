@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     wody_model: str = "gpt-5-mini"
     wody_temperature: float = 0.5
     wody_timeout_seconds: int = 45
+    wody_reasoning_effort: str | None = "none"
+    tavily_api_key: str | None = None
+    tavily_timeout_seconds: int = 25
+    tavily_search_depth: str = "basic"
+    tavily_max_results: int = 5
     jina_api_key: str | None = None
     jina_timeout_seconds: int = 25
     jina_max_tokens: int = 8000
@@ -58,13 +63,34 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
 
-    @field_validator("openai_base_url", "jina_api_key", mode="before")
+    @field_validator(
+        "openai_base_url",
+        "wody_reasoning_effort",
+        "tavily_api_key",
+        "jina_api_key",
+        mode="before",
+    )
     @classmethod
     def blank_strings_to_none(cls, value: str | None) -> str | None:
         if isinstance(value, str):
             stripped = value.strip()
             return stripped or None
         return value
+
+    @field_validator("wody_reasoning_effort", mode="after")
+    @classmethod
+    def normalize_wody_reasoning_effort(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip().lower()
+        allowed = {"none", "minimal", "low", "medium", "high"}
+        return normalized if normalized in allowed else "none"
+
+    @field_validator("tavily_search_depth", mode="before")
+    @classmethod
+    def normalize_tavily_search_depth(cls, value: str | None) -> str:
+        normalized = (value or "basic").strip().lower()
+        return normalized if normalized in {"basic", "advanced", "fast", "ultra-fast"} else "basic"
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":

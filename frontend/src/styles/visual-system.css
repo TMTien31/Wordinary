@@ -53,8 +53,6 @@
     .brand-mark.wordinary-mark i { position:absolute; right:-7px; top:-9px; width:18px; height:18px; border-radius:50%; background:var(--wordinary-coral); color:transparent; border:3px solid var(--surface); }
     .brand small { color: var(--wordinary-violet); letter-spacing: .75px; text-transform: none; font-size: 9px; }
     .nav-btn.active { background: var(--green-soft); color: var(--green-dark); box-shadow: inset 3px 0 0 var(--wordinary-violet); }
-    .sidebar-card { background: linear-gradient(150deg, #2b2540, #5143b6); }
-    .sidebar-card::after { background: rgba(255, 226, 102, .24); }
     .reader-card, .video-player-card, .caption-panel { box-shadow: 0 18px 0 rgba(33,29,41,.025), var(--shadow); }
     .article-title { text-wrap: balance; }
     .reading-hint { background: linear-gradient(135deg, rgba(255,226,102,.23), rgba(109,85,247,.08)); border-color: rgba(109,85,247,.15); }

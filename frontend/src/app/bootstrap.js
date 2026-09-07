@@ -5,11 +5,25 @@ function attachEvents() {
   document.addEventListener("error", event => {
     if (event.target instanceof HTMLImageElement) handleIconError(event.target);
   }, true);
-  $$("[data-view]").forEach(btn => btn.addEventListener("click", () => setView(btn.dataset.view)));
+  $$("[data-view]").forEach(btn => btn.addEventListener("click", () => {
+    setView(btn.dataset.view);
+    closeAccountMenu();
+  }));
   $$('[data-go-cards]').forEach(btn => btn.addEventListener("click", () => setView("cardsView")));
   $("#mobileMenuBtn").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+  $("#accountMenuButton")?.addEventListener("click", event => {
+    event.stopPropagation();
+    toggleAccountMenu();
+  });
+  document.addEventListener("mousedown", event => {
+    if (!$("#sidebarAccount")?.contains(event.target)) closeAccountMenu();
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeAccountMenu();
+  });
   $("#sidebarCollapseToggle").addEventListener("click", () => {
     if (window.innerWidth <= 780) { $("#sidebar").classList.remove("open"); return; }
+    closeAccountMenu();
     state.mainSidebarCollapsed = !state.mainSidebarCollapsed;
     updateMainSidebarButton();
     saveState();
@@ -163,6 +177,25 @@ function attachEvents() {
     if (e.key === "1" && state.reviewFlipped) rateReview("again");
     if (e.key === "2" && state.reviewFlipped) rateReview("good");
   });
+}
+
+function toggleAccountMenu() {
+  const menu = $("#accountMenu");
+  const button = $("#accountMenuButton");
+  if (!menu || !button) return;
+  const open = menu.classList.contains("is-hidden");
+  menu.classList.toggle("is-hidden", !open);
+  menu.setAttribute("aria-hidden", open ? "false" : "true");
+  button.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+function closeAccountMenu() {
+  const menu = $("#accountMenu");
+  const button = $("#accountMenuButton");
+  if (!menu || !button) return;
+  menu.classList.add("is-hidden");
+  menu.setAttribute("aria-hidden", "true");
+  button.setAttribute("aria-expanded", "false");
 }
 
 function selectFile(file) {

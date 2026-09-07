@@ -14,7 +14,7 @@
     .reader-rail-edge-toggle span { font-size: 24px; line-height: 1; transform: translateY(-1px); }
     .sidebar-edge-toggle { position: absolute; top: 50%; right: -17px; transform: translateY(-50%); }
     .sidebar-edge-toggle:hover { transform: translateY(-50%) scale(1.05); }
-    .brand-copy, .nav-text, .nav-count, .nav-label, .sidebar-card { transition: opacity .16s ease; }
+    .brand-copy, .nav-text, .nav-count, .nav-label, .account-copy, .account-chevron { transition: opacity .16s ease; }
 
     @media (min-width: 781px) {
       .app-shell.sidebar-collapsed { grid-template-columns: 78px minmax(0, 1fr); }
@@ -24,11 +24,23 @@
       .app-shell.sidebar-collapsed .nav-label,
       .app-shell.sidebar-collapsed .nav-text,
       .app-shell.sidebar-collapsed .nav-count,
-      .app-shell.sidebar-collapsed .sidebar-card { display: none; }
+      .app-shell.sidebar-collapsed .account-copy,
+      .app-shell.sidebar-collapsed .account-chevron { display: none; }
       .app-shell.sidebar-collapsed .nav-btn { justify-content: center; padding: 12px 0; gap: 0; }
       .app-shell.sidebar-collapsed .nav-btn:hover { transform: translateY(-1px); }
       .app-shell.sidebar-collapsed .nav-btn.active { box-shadow: inset 0 3px 0 var(--wordinary-violet); }
       .app-shell.sidebar-collapsed .nav-icon { flex: 0 0 38px; width: 38px; height: 38px; }
+      .app-shell.sidebar-collapsed .account-trigger {
+        display: grid;
+        grid-template-columns: 38px;
+        justify-content: center;
+        min-height: 52px;
+        padding: 7px;
+      }
+      .app-shell.sidebar-collapsed .account-popover {
+        left: 56px;
+        bottom: 0;
+      }
     }
 
     .reader-layout { position: relative; }

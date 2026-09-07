@@ -87,29 +87,170 @@
       border: 1px solid var(--line);
     }
 
-    .sidebar-card {
+    .sidebar-account {
       margin-top: auto;
-      background: linear-gradient(145deg, var(--green-dark), #194b38);
-      border-radius: 20px;
-      padding: 16px;
-      color: #fff;
       position: relative;
-      overflow: hidden;
+    }
+
+    .account-trigger {
+      width: 100%;
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) 18px;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      padding: 9px 10px;
+      text-align: left;
       box-shadow: var(--shadow-sm);
+      transition: background .18s ease, transform .18s ease, border-color .18s ease;
     }
-    .sidebar-card::after {
-      content: "";
-      position: absolute;
-      width: 90px; height: 90px;
-      right: -30px; top: -35px;
+
+    .account-trigger:hover,
+    .account-trigger[aria-expanded="true"] {
+      background: var(--surface-2);
+      border-color: color-mix(in srgb, var(--green) 26%, var(--line));
+      transform: translateY(-1px);
+    }
+
+    .account-avatar {
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
-      background: rgba(217, 241, 111, .19);
+      display: grid;
+      place-items: center;
+      background: var(--wordinary-violet, var(--green));
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
     }
-    .sidebar-card b { display: block; font-size: 14px; margin-bottom: 4px; }
-    .sidebar-card p { font-size: 11px; line-height: 1.55; opacity: .76; margin: 0 0 12px; }
-    .goal-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 7px; }
-    .goal-track { height: 7px; background: rgba(255,255,255,.16); border-radius: 999px; overflow: hidden; }
-    .goal-fill { width: 0%; height: 100%; background: var(--lime); border-radius: inherit; transition: width .5s ease; }
+
+    .account-copy {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .account-copy strong,
+    .account-copy small,
+    .account-popover-head strong,
+    .account-popover-head small {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .account-copy strong {
+      font-size: 13px;
+      line-height: 1.15;
+    }
+
+    .account-copy small {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .account-chevron {
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .account-popover {
+      position: absolute;
+      left: 0;
+      bottom: calc(100% + 10px);
+      width: min(306px, calc(100vw - 28px));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--surface) 95%, transparent);
+      box-shadow: 0 24px 70px rgba(24, 20, 33, .2);
+      padding: 12px;
+      z-index: 80;
+      backdrop-filter: blur(20px);
+    }
+
+    .account-popover.is-hidden {
+      display: none;
+    }
+
+    .account-popover-head {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 8px;
+    }
+
+    .account-popover-head div {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .account-popover-head strong {
+      font-size: 14px;
+      line-height: 1.15;
+    }
+
+    .account-popover-head small {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .account-menu-divider {
+      height: 1px;
+      background: var(--line);
+      margin: 8px;
+    }
+
+    .account-menu-item {
+      width: 100%;
+      min-height: 44px;
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) 14px;
+      gap: 8px;
+      align-items: center;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      padding: 0 10px;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 750;
+      transition: background .18s ease, color .18s ease;
+    }
+
+    .account-menu-item:hover {
+      background: var(--surface-2);
+    }
+
+    .account-menu-item > span:first-child {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .account-menu-item b {
+      color: var(--muted);
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .account-menu-item.danger {
+      color: var(--red);
+    }
 
     .main {
       grid-column: 2;
