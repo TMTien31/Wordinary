@@ -176,6 +176,48 @@
   overflow-wrap: anywhere;
 }
 
+.wody-message-content p,
+.wody-message-content ul,
+.wody-message-content ol,
+.wody-message-content blockquote {
+  margin: 0 0 .7em;
+}
+
+.wody-message-content > :last-child {
+  margin-bottom: 0;
+}
+
+.wody-message-content h2,
+.wody-message-content h3,
+.wody-message-content h4 {
+  margin: .25em 0 .45em;
+  font-size: 1em;
+  line-height: 1.25;
+}
+
+.wody-message-content a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.wody-message-content img {
+  display: block;
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 8px;
+  object-fit: contain;
+  margin: .55em 0;
+}
+
+.wody-message-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .9em;
+  background: rgba(255, 255, 255, .5);
+  border-radius: 5px;
+  padding: .08em .28em;
+}
+
 .wody-message.assistant {
   background: #eef7f2;
   border: 1px solid rgba(31, 138, 112, 0.16);

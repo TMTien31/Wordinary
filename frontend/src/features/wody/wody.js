@@ -81,7 +81,7 @@ function renderWodyMessage(message, index) {
   return `
     <div class="wody-message-row ${role}">
       <div class="wody-message ${role}">
-        <div class="wody-message-content">${escapeHtml(content)}</div>
+        <div class="wody-message-content">${typeof renderMarkdown === "function" ? renderMarkdown(content) : escapeHtml(content)}</div>
         ${actions.length ? renderWodyActions(actions, index) : ""}
       </div>
     </div>
@@ -228,7 +228,7 @@ async function refreshAfterWodyTools(toolsUsed = []) {
     if (typeof refreshVocabularyFromApi === "function") refreshes.push(refreshVocabularyFromApi());
   }
   if (
-    tools.has("create_article_from_web_search") ||
+    tools.has("save_article_draft") ||
     tools.has("delete_library_item")
   ) {
     if (typeof refreshAndRenderLibrary === "function") refreshes.push(refreshAndRenderLibrary());

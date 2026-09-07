@@ -69,7 +69,8 @@ Available tools:
 - web_search: search the public web when the answer needs current outside information.
 - create_vocabulary_item: create a manual vocabulary flashcard for the current user.
 - update_vocabulary_item: fill missing fields or explicitly update one saved vocabulary item.
-- create_article_from_web_search: find an English public web article and save it to Library.
+- search_article_sources: find and extract public web sources for a new reading article.
+- save_article_draft: save a complete edited article draft to Library.
 - delete_vocabulary_item: prepare an in-chat confirmation action for deleting one saved vocabulary item.
 - delete_library_item: prepare an in-chat confirmation action for deleting one library item.
 
@@ -101,7 +102,13 @@ Privacy and guardrails:
   part of speech, phonetic transcription, one natural English sentence, and Vietnamese sentence translation.
 - For update_vocabulary_item, fill blank fields by default. Only overwrite existing non-empty fields when the
   user clearly asks to change/replace/fix that field.
-- For create_article_from_web_search, prefer English-language sources. If the user gives a Vietnamese topic,
+- For article creation from the web, call search_article_sources first. Read the returned sources,
+  choose the best usable source, then write a clean complete English markdown article yourself and call
+  save_article_draft. Do not save raw search results or raw extracted markdown.
+- When writing an article draft, use only facts supported by the returned source text. Keep useful source
+  images as markdown image links when their URLs appear in the source pack. If the source text is too thin,
+  noisy, or cut off, do not save; explain the limitation and suggest a narrower retry.
+- For search_article_sources, prefer English-language sources. If the user gives a Vietnamese topic,
   translate it into natural English search terms before calling the tool.
 - Delete tools do not delete immediately. They prepare a confirmation button in the chat UI.
   If the target is vague, search first and ask a short clarifying question.
@@ -539,38 +546,41 @@ class WodyService:
             return output
 
         @tool
-        async def create_article_from_web_search(
+        async def search_article_sources(
             topic: str,
             source_url: str = "",
             title: str = "",
+            limit: int = 3,
         ) -> str:
-            """Search the web with Tavily, read a page, and save it to the user's Library."""
+            """Search the web with Tavily and return extracted source material for article drafting."""
             started = _log_tool_start(
-                "create_article_from_web_search",
+                "search_article_sources",
                 user_id,
-                {"topic": topic, "source_url": source_url, "title": title},
+                {"topic": topic, "source_url": source_url, "title": title, "limit": limit},
             )
             if not settings.tavily_api_key:
                 output = _json(
                     {
-                        "created": False,
+                        "found": False,
                         "error": (
                             "TAVILY_API_KEY is not configured. Tavily is the primary "
                             "web provider for article creation."
                         ),
                     }
                 )
-                _log_tool_end("create_article_from_web_search", user_id, started, output)
+                _log_tool_end("search_article_sources", user_id, started, output)
                 return output
             target_url = _extract_url(source_url)
             search_payload: dict[str, Any] = {}
             candidates: list[dict[str, Any]]
+            search_query = ""
             if target_url:
                 candidates = [{"url": target_url, "title": title or topic, "content": ""}]
             else:
+                search_query = _english_article_search_query(topic)
                 try:
                     search_payload = await _tavily_search_json(
-                        _english_article_search_query(topic),
+                        search_query,
                         max_results=_clamp(settings.tavily_max_results, 1, 8),
                         include_answer=False,
                         include_raw_content=False,
@@ -578,7 +588,7 @@ class WodyService:
                 except Exception as exc:
                     logger.exception(
                         (
-                            "wody.tool.error name=create_article_from_web_search "
+                            "wody.tool.error name=search_article_sources "
                             "provider=tavily user_id=%s error=%s"
                         ),
                         user_id,
@@ -586,27 +596,27 @@ class WodyService:
                     )
                     output = _json(
                         {
-                            "created": False,
+                            "found": False,
                             "error": "Tavily search failed before an article source was found.",
                         }
                     )
-                    _log_tool_end("create_article_from_web_search", user_id, started, output)
+                    _log_tool_end("search_article_sources", user_id, started, output)
                     return output
                 candidates = _tavily_search_results(search_payload)
             if not candidates:
                 output = _json(
                     {
-                        "created": False,
+                        "found": False,
                         "error": "No readable source URL found.",
                         "search": _clip(_json(search_payload), 900),
                     }
                 )
-                _log_tool_end("create_article_from_web_search", user_id, started, output)
+                _log_tool_end("search_article_sources", user_id, started, output)
                 return output
 
-            article: dict[str, str] | None = None
+            sources: list[dict[str, Any]] = []
             errors: list[str] = []
-            for candidate in candidates[:3]:
+            for candidate in candidates[: _clamp(limit, 1, 3)]:
                 candidate_url = _extract_url(str(candidate.get("url") or ""))
                 if not candidate_url:
                     continue
@@ -615,7 +625,7 @@ class WodyService:
                 except Exception as exc:
                     logger.exception(
                         (
-                            "wody.tool.error name=create_article_from_web_search "
+                            "wody.tool.error name=search_article_sources "
                             "provider=tavily_extract user_id=%s url=%s error=%s"
                         ),
                         user_id,
@@ -624,39 +634,113 @@ class WodyService:
                     )
                     errors.append(f"{candidate_url}: extract failed")
                     continue
-                article = _article_from_tavily(
+                source = _source_from_tavily_extract(
                     extract_payload,
                     fallback_url=candidate_url,
                     fallback_title=str(title or candidate.get("title") or topic),
                     fallback_content=str(candidate.get("content") or ""),
+                    score=candidate.get("score"),
+                    published_date=str(candidate.get("published_date") or ""),
                 )
-                if len(article["content"].split()) >= 80:
-                    break
+                if len(source["raw_content"].split()) >= 80:
+                    sources.append(source)
+                    continue
                 errors.append(f"{candidate_url}: not enough readable text")
-                article = None
 
-            if article is None:
+            if not sources:
                 output = _json(
                     {
-                        "created": False,
+                        "found": False,
                         "error": "Tavily could not extract enough readable article text.",
                         "details": errors[-3:],
                     }
                 )
-                _log_tool_end("create_article_from_web_search", user_id, started, output)
+                _log_tool_end("search_article_sources", user_id, started, output)
                 return output
 
-            article_title = (
-                _clean_article_title(title or article["title"] or topic)
-                or "Untitled article"
+            output = _json(
+                {
+                    "found": True,
+                    "provider": "tavily",
+                    "query": search_query,
+                    "sources": sources,
+                    "drafting_instructions": (
+                        "Choose one source, write a complete clean English markdown article from "
+                        "the supported facts, include useful image markdown only from image URLs "
+                        "present here, then call save_article_draft with title, content, and source_url."
+                    ),
+                    "details": errors[-3:],
+                }
             )
+            _log_tool_end("search_article_sources", user_id, started, output)
+            return output
+
+        @tool
+        async def save_article_draft(
+            title: str,
+            content: str,
+            source_url: str,
+            source_title: str = "",
+        ) -> str:
+            """Save a complete model-edited markdown article draft to the user's Library."""
+            started = _log_tool_start(
+                "save_article_draft",
+                user_id,
+                {
+                    "title": title,
+                    "source_url": source_url,
+                    "source_title": source_title,
+                    "content_length": len(str(content or "")),
+                },
+            )
+            cleaned_title = _clean_article_title(title or source_title) or "Untitled article"
+            cleaned_content = str(content or "").strip()
+            source = _extract_url(source_url)
+            if not source:
+                output = _json(
+                    {
+                        "created": False,
+                        "error": "A valid source_url from search_article_sources is required.",
+                    }
+                )
+                _log_tool_end("save_article_draft", user_id, started, output)
+                return output
+            if _looks_like_raw_source_dump(cleaned_content):
+                output = _json(
+                    {
+                        "created": False,
+                        "error": "The draft still looks like raw source data. Write a clean article first.",
+                    }
+                )
+                _log_tool_end("save_article_draft", user_id, started, output)
+                return output
+            if len(re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)?", cleaned_content)) < 80:
+                output = _json(
+                    {
+                        "created": False,
+                        "error": "The article draft is too short to save.",
+                    }
+                )
+                _log_tool_end("save_article_draft", user_id, started, output)
+                return output
+            if _looks_incomplete_article(cleaned_content):
+                output = _json(
+                    {
+                        "created": False,
+                        "error": "The article draft looks incomplete or cut off.",
+                    }
+                )
+                _log_tool_end("save_article_draft", user_id, started, output)
+                return output
+
             async with AsyncSessionLocal() as tool_session:
                 response = await LibraryService(tool_session).create_article(
                     user_id=user_id,
                     data=ArticleCreate(
-                        title=_clip(article_title, 240),
-                        content=article["content"],
-                        source_url=article["url"],
+                        title=_clip(cleaned_title, 240),
+                        content=cleaned_content,
+                        content_format="markdown",
+                        source_url=source,
                         import_method=ImportMethod.URL,
                     ),
                 )
@@ -672,7 +756,7 @@ class WodyService:
                     },
                 }
             )
-            _log_tool_end("create_article_from_web_search", user_id, started, output)
+            _log_tool_end("save_article_draft", user_id, started, output)
             return output
 
         @tool
@@ -799,7 +883,8 @@ class WodyService:
             get_learning_snapshot,
             create_vocabulary_item,
             update_vocabulary_item,
-            create_article_from_web_search,
+            search_article_sources,
+            save_article_draft,
             delete_vocabulary_item,
             delete_library_item,
             web_search,
@@ -902,7 +987,7 @@ async def _tavily_extract_json(source_url: str) -> dict[str, Any]:
         "urls": source_url,
         "extract_depth": "basic",
         "format": "markdown",
-        "include_images": False,
+        "include_images": True,
         "include_favicon": False,
         "timeout": float(_clamp(settings.tavily_timeout_seconds, 1, 60)),
     }
@@ -1233,6 +1318,121 @@ def _tavily_web_search_output(payload: dict[str, Any]) -> dict[str, Any]:
         ],
         "usage": payload.get("usage") or {},
     }
+
+
+def _source_from_tavily_extract(
+    payload: dict[str, Any],
+    *,
+    fallback_url: str,
+    fallback_title: str,
+    fallback_content: str,
+    score: Any,
+    published_date: str,
+) -> dict[str, Any]:
+    results = payload.get("results")
+    result = (
+        results[0]
+        if isinstance(results, list) and results and isinstance(results[0], dict)
+        else {}
+    )
+    raw_content = str(
+        result.get("raw_content")
+        or result.get("content")
+        or fallback_content
+        or ""
+    )
+    images = _merge_source_images(payload, result, raw_content)
+    return {
+        "title": _clean_article_title(str(result.get("title") or fallback_title)),
+        "url": _extract_url(str(result.get("url") or fallback_url)) or fallback_url,
+        "snippet": _clip(str(fallback_content or result.get("content") or ""), 800),
+        "raw_content": _source_markdown_from_tavily(raw_content),
+        "images": images[:8],
+        "score": score,
+        "published_date": str(result.get("published_date") or published_date or ""),
+    }
+
+
+def _source_markdown_from_tavily(text: str) -> str:
+    lines = []
+    for raw_line in str(text or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith(("Title:", "URL Source:", "Published Time:", "Markdown Content:")):
+            continue
+        if re.fullmatch(r"[-|:\s]+", line) or line.startswith("|"):
+            continue
+        lines.append(line)
+    return _clip_content("\n\n".join(_dedupe_preserving_order(lines)), 12000)
+
+
+def _merge_source_images(
+    payload: dict[str, Any],
+    result: dict[str, Any],
+    raw_content: str,
+) -> list[dict[str, str]]:
+    images: list[dict[str, str]] = []
+    for container in (payload, result):
+        raw_images = container.get("images")
+        if not isinstance(raw_images, list):
+            continue
+        for image in raw_images:
+            if isinstance(image, str):
+                url = _extract_url(image)
+                alt = ""
+            elif isinstance(image, dict):
+                url = _extract_url(str(image.get("url") or image.get("src") or ""))
+                alt = str(image.get("alt") or image.get("description") or "")
+            else:
+                continue
+            if url:
+                images.append({"url": url, "alt": _clip(_clean_markdown_text(alt), 160)})
+    images.extend(_extract_markdown_images(raw_content))
+    seen: set[str] = set()
+    unique = []
+    for image in images:
+        url = image.get("url") or ""
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        unique.append(image)
+    return unique
+
+
+def _extract_markdown_images(text: str) -> list[dict[str, str]]:
+    images = []
+    for match in re.finditer(r"!\[([^\]]*)\]\((https?://[^)\s]+)\)", str(text or "")):
+        images.append(
+            {
+                "url": _extract_url(match.group(2)),
+                "alt": _clip(_clean_markdown_text(match.group(1)), 160),
+            }
+        )
+    return [image for image in images if image["url"]]
+
+
+def _looks_like_raw_source_dump(content: str) -> bool:
+    stripped = content.strip()
+    if not stripped:
+        return True
+    lowered = stripped[:1200].lower()
+    return (
+        stripped.startswith(("{", "["))
+        and any(marker in lowered for marker in ('"sources"', '"raw_content"', '"provider"', '"results"'))
+    ) or lowered.startswith(("provider:", "query:", "raw_content:"))
+
+
+def _looks_incomplete_article(content: str) -> bool:
+    stripped = content.strip()
+    if not stripped:
+        return True
+    last_line = stripped.splitlines()[-1].strip()
+    if re.match(r"^#{1,6}\s+\S", last_line):
+        return True
+    if re.match(r"^(?:[-*+]|\d+\.)\s+\S", last_line) and len(last_line.split()) <= 5:
+        return True
+    return stripped.endswith(("```", "[", "(", ",", ":"))
 
 
 def _tavily_search_results(payload: dict[str, Any]) -> list[dict[str, Any]]:

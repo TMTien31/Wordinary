@@ -9,8 +9,9 @@
   const normalized = normalizeArticleRecord(article);
   state.article = normalized;
   if (normalized.storageSource === "api") upsertArticle(normalized, true);
+  renderArticleSource(normalized.sourceUrl || "");
   const body = $("#articleBody");
-  body.innerHTML = textToParagraphs(normalized.content || "No content yet.");
+  body.innerHTML = articleBodyHtml(normalized);
   renderReaderArticleWords();
   applyReaderHighlights(false);
   const reader = $("#readerCard");
@@ -22,6 +23,22 @@
     state.suppressProgress = false;
   });
   saveState();
+}
+
+function renderArticleSource(sourceUrl = "") {
+  const root = $("#articleSource");
+  const link = $("#articleSourceLink");
+  if (!root || !link) return;
+  const url = sourceUrl.trim();
+  if (!url) {
+    root.hidden = true;
+    link.removeAttribute("href");
+    link.textContent = "";
+    return;
+  }
+  root.hidden = false;
+  link.href = url;
+  link.textContent = url.replace(/^https?:\/\//i, "");
 }
 
 function openEditArticleModal() {
@@ -80,6 +97,21 @@ function textToParagraphs(text) {
     if (/^>\s/.test(block)) return `<blockquote>${clean.replace(/^&gt;\s/, "")}</blockquote>`;
     return `<p>${clean}</p>`;
   }).join("");
+}
+
+function articleLooksMarkdown(article = {}) {
+  const content = String(article.content || "");
+  return article.contentFormat === "markdown"
+    || /(^|\n)#{1,4}\s+\S/.test(content)
+    || /!\[[^\]]*\]\(https?:\/\/[^)]+\)/i.test(content)
+    || /\[[^\]]+\]\(https?:\/\/[^)]+\)/i.test(content)
+    || /(^|\n)[-*+]\s+\S/.test(content);
+}
+
+function articleBodyHtml(article = state.article) {
+  const content = article?.content || "No content yet.";
+  if (articleLooksMarkdown(article) && typeof renderMarkdown === "function") return renderMarkdown(content);
+  return textToParagraphs(content);
 }
 
 function estimateLevel(text) {
@@ -198,7 +230,7 @@ function refreshReaderArticleWords() {
 
 function createReaderHighlightedBody(words = []) {
   const body = $("#articleBody");
-  body.innerHTML = textToParagraphs(state.article?.content || "No content yet.");
+  body.innerHTML = articleBodyHtml(state.article);
   const entries = words.map((word, index) => ({ word, regex: readerWordRegex(word), color: READER_HIGHLIGHT_COLORS[index % READER_HIGHLIGHT_COLORS.length] })).filter(entry => entry.regex);
   if (!entries.length) return [];
   const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT, {
@@ -239,7 +271,7 @@ function createReaderHighlightedBody(words = []) {
 function applyReaderHighlights() {
   const words = normalizeReaderHighlightedWords();
   if (!words.length) {
-    $("#articleBody").innerHTML = textToParagraphs(state.article?.content || "No content yet.");
+    $("#articleBody").innerHTML = articleBodyHtml(state.article);
     renderReaderArticleWords();
     return;
   }

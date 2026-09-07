@@ -19,6 +19,7 @@ function normalizeArticleRecord(article = {}, forcedId = "") {
     author: article.author || "Imported by you",
     date: article.date || new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
     level: article.level || estimateLevel(content),
+    contentFormat: article.contentFormat || article.content_format || "plain_text",
     createdAt: Number(article.createdAt) || Date.now(),
     lastOpenedAt: Number(article.lastOpenedAt) || Number(article.createdAt) || Date.now(),
     progress: Math.max(0, Math.min(100, Number(article.progress) || 0)),
@@ -218,6 +219,7 @@ function apiDetailToArticleRecord(detail = {}) {
     sourceUrl: detail.sourceUrl || "",
     author: metadata.author || "Imported by you",
     level: metadata.level || estimateLevel(detail.content || ""),
+    contentFormat: metadata.contentFormat || metadata.content_format || "plain_text",
     createdAt: dateToMs(detail.createdAt),
     lastOpenedAt: dateToMs(detail.lastOpenedAt, dateToMs(detail.createdAt)),
     progress: Number(detail.progress) || 0,
@@ -241,6 +243,7 @@ function mergeServerLibraryPage(page = {}) {
         title: item.title,
         content: "",
         sourceUrl: item.sourceUrl,
+        contentFormat: item.metadata?.contentFormat || item.metadata?.content_format || "plain_text",
         createdAt: item.createdAt,
         lastOpenedAt: item.lastOpenedAt,
         progress: item.progress,
@@ -251,6 +254,7 @@ function mergeServerLibraryPage(page = {}) {
       existing.storageSource = "api";
       existing.title = item.title;
       existing.sourceUrl = item.sourceUrl;
+      existing.contentFormat = item.metadata?.contentFormat || item.metadata?.content_format || existing.contentFormat || "plain_text";
       existing.progress = item.progress;
       existing.lastOpenedAt = item.lastOpenedAt;
     }

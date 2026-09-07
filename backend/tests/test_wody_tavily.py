@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from app.modules.wody.service import _article_from_tavily
+from app.modules.library.service import _normalize_content
+from app.modules.wody.service import _source_from_tavily_extract
 from app.modules.wody.service import _tavily_search_results
 from app.modules.wody.service import _tavily_web_search_output
 
@@ -78,3 +80,46 @@ This is the second paragraph with **bold** text and `code` markers.
     assert "helpful link" in article["content"]
     assert "Decorative image" not in article["content"]
     assert "**" not in article["content"]
+
+
+def test_source_from_tavily_extract_keeps_markdown_images_for_model() -> None:
+    payload = {
+        "results": [
+            {
+                "url": "https://example.com/article",
+                "title": "Source title",
+                "raw_content": """
+Title: Ignored
+
+# A Useful Heading
+
+This article paragraph gives the model enough usable source material to draft from.
+
+![Chart showing growth](https://example.com/chart.png)
+""",
+            }
+        ]
+    }
+
+    source = _source_from_tavily_extract(
+        payload,
+        fallback_url="https://fallback.example/article",
+        fallback_title="Fallback title",
+        fallback_content="Search snippet",
+        score=0.8,
+        published_date="2026-09-07",
+    )
+
+    assert source["url"] == "https://example.com/article"
+    assert "![Chart showing growth](https://example.com/chart.png)" in source["raw_content"]
+    assert source["images"] == [
+        {"url": "https://example.com/chart.png", "alt": "Chart showing growth"}
+    ]
+
+
+def test_markdown_content_normalization_preserves_blocks_and_images() -> None:
+    content = "# Heading\r\n\r\nParagraph one.\r\n\r\n![Alt](https://example.com/a.png)"
+
+    normalized = _normalize_content(content, "markdown")
+
+    assert normalized == "# Heading\n\nParagraph one.\n\n![Alt](https://example.com/a.png)"

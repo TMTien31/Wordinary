@@ -1,11 +1,18 @@
 function openImportModal() { $("#importModal").classList.add("show"); }
 function closeImportModal() { $("#importModal").classList.remove("show"); }
 
-function markdownToText(markdown) {
+function markdownToText(markdown, preserveMarkdown = false) {
   const lines = markdown.split("\n");
   const titleLine = lines.find(line => /^Title:\s*/i.test(line));
   const title = titleLine ? titleLine.replace(/^Title:\s*/i, "").trim() : "Imported article";
   let content = markdown.replace(/^Title:.*$/gmi, "").replace(/^URL Source:.*$/gmi, "").replace(/^Published Time:.*$/gmi, "").replace(/^Markdown Content:\s*$/gmi, "");
+  if (preserveMarkdown) {
+    return {
+      title,
+      content: content.replace(/\n{3,}/g, "\n\n").trim(),
+      contentFormat: "markdown"
+    };
+  }
   content = content
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, "")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
@@ -41,15 +48,16 @@ async function importArticle() {
     } else if (state.currentTab === "filePanel") {
       if (!state.uploadedFile) throw new Error("Hãy chọn một tệp trước.");
       const text = await state.uploadedFile.text();
-      const parsed = /\.html?$/i.test(state.uploadedFile.name) ? htmlToText(text) : /\.md$/i.test(state.uploadedFile.name) ? markdownToText(text) : { title: state.uploadedFile.name.replace(/\.[^.]+$/, ""), content: text };
+      const parsed = /\.html?$/i.test(state.uploadedFile.name) ? htmlToText(text) : /\.md$/i.test(state.uploadedFile.name) ? markdownToText(text, true) : { title: state.uploadedFile.name.replace(/\.[^.]+$/, ""), content: text };
       article = { title: $("#fileTitle").value.trim() || parsed.title, content: parsed.content, importMethod: "file", fileName: state.uploadedFile.name };
+      if (parsed.contentFormat) article.contentFormat = parsed.contentFormat;
     } else {
       let url = $("#articleUrl").value.trim();
       if (!/^https?:\/\//i.test(url)) throw new Error("Hãy nhập URL bắt đầu bằng http:// hoặc https://");
       const res = await fetch(`https://r.jina.ai/${url}`, { headers: { "Accept": "text/plain" } });
       if (!res.ok) throw new Error(`Không thể đọc URL (HTTP ${res.status}).`);
       const text = await res.text();
-      const parsed = markdownToText(text);
+      const parsed = markdownToText(text, true);
       if (parsed.content.length < 120) throw new Error("Trang này không trả về đủ nội dung bài viết.");
       article = { ...parsed, sourceUrl: url, importMethod: "url" };
     }
@@ -66,6 +74,7 @@ async function importArticle() {
     const detail = await libraryApiCreateArticle({
       title: article.title,
       content: article.content,
+      contentFormat: article.contentFormat || "plain_text",
       sourceUrl: article.sourceUrl || null,
       importMethod: article.importMethod || "paste",
       originalFileName: article.fileName || null

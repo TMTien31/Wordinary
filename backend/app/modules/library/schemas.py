@@ -29,6 +29,7 @@ class VideoPosition(APIModel):
 class ArticleCreate(APIModel):
     title: str = Field(min_length=1, max_length=240)
     content: str = Field(min_length=1)
+    content_format: Literal["html", "plain_text", "markdown"] = "plain_text"
     source_url: str | None = Field(default=None, max_length=2048)
     import_method: ImportMethod = ImportMethod.PASTE
     original_file_name: str | None = Field(default=None, max_length=255)
@@ -84,6 +85,7 @@ class ArticleMetadata(APIModel):
     level: str | None = Field(default=None, max_length=20)
     word_count: int = Field(default=0, ge=0)
     reading_minutes: int = Field(default=1, ge=1)
+    content_format: Literal["html", "plain_text", "markdown"] = "plain_text"
     import_method: ImportMethod | None = None
     original_file_name: str | None = Field(default=None, max_length=255)
 

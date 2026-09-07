@@ -44,6 +44,7 @@ ARTICLE_IMPORT_METHODS = {
     ImportMethod.URL.value,
     ImportMethod.FILE.value,
 }
+ARTICLE_CONTENT_FORMATS = {"html", "plain_text", "markdown"}
 WORDS_PER_MINUTE = 220
 MAX_PDF_UPLOAD_BYTES = 100 * 1024 * 1024
 
@@ -73,8 +74,13 @@ class LibraryService:
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="Article import_method must be paste, url, or file",
             )
+        if data.content_format not in ARTICLE_CONTENT_FORMATS:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="Article content_format must be html, plain_text, or markdown",
+            )
 
-        content = _normalize_content(data.content)
+        content = _normalize_content(data.content, data.content_format)
         word_count = _count_words(content)
         item = LibraryItem(
             user_id=user_id,
@@ -86,7 +92,7 @@ class LibraryService:
         article = Article(
             library_item=item,
             content=content,
-            content_format="plain_text",
+            content_format=data.content_format,
             import_method=data.import_method.value,
             original_file_name=data.original_file_name,
             word_count=word_count,
@@ -365,7 +371,7 @@ class LibraryService:
         if data.title is not None:
             item.title = data.title.strip()
         if data.content is not None:
-            content = _normalize_content(data.content)
+            content = _normalize_content(data.content, article.content_format)
             word_count = _count_words(content)
             article.content = content
             article.word_count = word_count
@@ -507,7 +513,11 @@ def _not_found() -> HTTPException:
     )
 
 
-def _normalize_content(content: str) -> str:
+def _normalize_content(content: str, content_format: str = "plain_text") -> str:
+    if content_format == "markdown":
+        normalized = str(content).replace("\r\n", "\n").replace("\r", "\n")
+        lines = [line.rstrip() for line in normalized.split("\n")]
+        return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
     return re.sub(r"\s+", " ", content).strip()
 
 

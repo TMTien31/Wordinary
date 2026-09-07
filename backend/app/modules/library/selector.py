@@ -329,6 +329,7 @@ def _article_metadata(article: Article) -> ArticleMetadata:
         level=article.level,
         word_count=article.word_count,
         reading_minutes=max(1, article.reading_minutes),
+        content_format=article.content_format,
         import_method=article.import_method,
         original_file_name=article.original_file_name,
     )
