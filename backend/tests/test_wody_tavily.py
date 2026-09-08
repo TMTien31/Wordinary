@@ -1,10 +1,16 @@
 from __future__ import annotations
 
+import asyncio
+import json
+import uuid
+
+from app.modules.wody.service import SYSTEM_PROMPT_TEMPLATE
+from app.modules.wody.service import WodyService
+from app.modules.wody.service import _article_safety_issue
 from app.modules.wody.service import _article_from_tavily
 from app.modules.library.service import _normalize_content
 from app.modules.wody.service import _source_from_tavily_extract
 from app.modules.wody.service import _tavily_search_results
-from app.modules.wody.service import _tavily_web_search_output
 
 
 def test_tavily_search_results_keep_valid_urls_and_sort_by_score() -> None:
@@ -22,29 +28,57 @@ def test_tavily_search_results_keep_valid_urls_and_sort_by_score() -> None:
     assert [item["title"] for item in results] == ["High", "Low", "Bad score"]
 
 
-def test_tavily_web_search_output_is_compact_and_source_friendly() -> None:
-    output = _tavily_web_search_output(
-        {
-            "query": "latest AI news",
-            "answer": "A short answer.",
-            "usage": {"credits": 1},
-            "results": [
-                {
-                    "title": "Source",
-                    "url": "https://example.com/source",
-                    "content": "Useful search snippet.",
-                    "score": 0.8,
-                    "published_date": "2026-09-07",
-                }
-            ],
-        }
+def test_wody_prompt_limits_general_assistant_behavior_with_a_warm_redirect() -> None:
+    assert "not a general-purpose assistant" in SYSTEM_PROMPT_TEMPLATE
+    assert "Do not open with a cold refusal" in SYSTEM_PROMPT_TEMPLATE
+    assert "sports schedules" in SYSTEM_PROMPT_TEMPLATE
+    assert "Vietnam national team" not in SYSTEM_PROMPT_TEMPLATE
+    assert "web_search:" not in SYSTEM_PROMPT_TEMPLATE
+
+
+def test_wody_tools_exclude_general_web_search_but_keep_article_research() -> None:
+    tools = WodyService(None)._build_tools(uuid.uuid4())  # type: ignore[arg-type]
+    tool_names = {item.name for item in tools}
+
+    assert "web_search" not in tool_names
+    assert "search_article_sources" in tool_names
+
+
+def test_article_safety_blocks_dangerous_topics_in_english_and_vietnamese() -> None:
+    assert _article_safety_issue("Find an article about murder") == "severe_violence"
+    assert _article_safety_issue("Tìm một bài về giết người") == "severe_violence"
+    assert _article_safety_issue("How to make a bomb") == "weapons"
+    assert _article_safety_issue("An article about self-harm") == "self_harm"
+
+
+def test_article_safety_allows_general_learning_topics() -> None:
+    assert _article_safety_issue("How memory helps English vocabulary") is None
+    assert _article_safety_issue("A B1 article about peaceful conflict resolution") is None
+
+
+def test_article_tools_block_before_search_or_database_work() -> None:
+    tools = {
+        item.name: item
+        for item in WodyService(None)._build_tools(uuid.uuid4())  # type: ignore[arg-type]
+    }
+
+    search_result = asyncio.run(
+        tools["search_article_sources"].ainvoke({"topic": "Tìm bài về giết người"})
+    )
+    save_result = asyncio.run(
+        tools["save_article_draft"].ainvoke(
+            {
+                "title": "A story about murder",
+                "content": "This unsafe draft must be blocked before persistence.",
+                "source_url": "https://example.com/article",
+            }
+        )
     )
 
-    assert output["provider"] == "tavily"
-    assert output["answer"] == "A short answer."
-    assert output["results"][0]["url"] == "https://example.com/source"
-    assert output["results"][0]["score"] == 0.8
-    assert output["usage"] == {"credits": 1}
+    assert json.loads(search_result)["blocked"] is True
+    assert json.loads(search_result)["stage"] == "search"
+    assert json.loads(save_result)["blocked"] is True
+    assert json.loads(save_result)["stage"] == "save"
 
 
 def test_article_from_tavily_cleans_markdown_and_uses_fallback_title() -> None:

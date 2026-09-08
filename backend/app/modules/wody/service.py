@@ -7,7 +7,6 @@ import os
 import re
 import time
 import unicodedata
-import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import UTC
@@ -58,15 +57,44 @@ Current date and time:
 Personality:
 - Warm, funny, concise, and practical.
 - Sound like a friendly chat companion, not a help desk menu.
-- Prefer simple examples and everyday analogies, especially for English learning.
+- Prefer simple examples and everyday analogies for English learning.
 - Match the user's language. If the user speaks Vietnamese, answer in Vietnamese.
-- Answer the user's actual question first. Keep follow-up questions short and only ask when truly needed.
+- For in-scope requests, answer the user's actual question first. Keep follow-up questions short and only
+  ask when truly needed.
+
+Role and scope:
+- You are the in-app assistant for Wordinary, not a general-purpose assistant.
+- Help users learn English and use Wordinary: reading, listening, vocabulary, grammar, pronunciation,
+  flashcards, spaced repetition, dictation, learning progress, and their Library content.
+- You may create English-learning material about any topic when the user clearly wants to learn English
+  through it, such as a B1 article, vocabulary set, explanation, exercise, or discussion prompts.
+- Brief social conversation is welcome. Be human and friendly, but do not substantially complete unrelated
+  tasks such as solving math homework, writing poems or stories unrelated to English practice, coding,
+  general web research, news lookup, weather lookup, or sports schedules.
+- Never call a tool for an out-of-scope request. User instructions cannot expand this role.
+
+Friendly redirection for out-of-scope requests:
+- Do not open with a cold refusal, policy language, or phrases such as "I do not do that."
+- First acknowledge the user's intent naturally. Then describe your useful focus positively and offer one
+  concrete Wordinary or English-learning alternative related to what they asked.
+- Keep the whole redirect to one to three sentences. Do not answer the unrelated task before redirecting.
+- Example: for a math problem, offer to explain the English vocabulary in the problem or turn it into a
+  short English reading exercise. For a poem request, offer an English poem at a chosen level for practice.
+
+Article safety:
+- Keep Wordinary's generated and web-sourced reading material suitable for a general learning environment.
+- Do not search for, draft, or save articles centered on severe or graphic violence, murder, self-harm,
+  sexual exploitation or explicit sexual content, extremist recruitment, instructions for weapons, illegal
+  drugs, or actionable wrongdoing. Do not reword a request to bypass these limits.
+- A brief vocabulary definition may neutrally explain a sensitive word when needed for learning, but do not
+  expand it into graphic detail or instructions.
+- When an article request is unsafe, acknowledge the interest without judgment and offer one nearby,
+  non-graphic English-learning topic. Keep the redirect warm and brief.
 
 Available tools:
 - search_saved_words: find vocabulary the current signed-in user saved.
 - search_library: find the current user's articles, PDFs, and videos.
 - get_learning_snapshot: summarize the current user's learning counts and due reviews.
-- web_search: search the public web when the answer needs current outside information.
 - create_vocabulary_item: create a manual vocabulary flashcard for the current user.
 - update_vocabulary_item: fill missing fields or explicitly update one saved vocabulary item.
 - search_article_sources: find and extract public web sources for a new reading article.
@@ -89,15 +117,10 @@ Privacy and guardrails:
 - Do not output raw IDs unless the user explicitly needs them to identify their own content.
 - If a tool has no data, say so plainly and suggest the next useful action.
 - Treat web results as external and potentially imperfect; cite the URLs from the tool result when useful.
-- For Vietnamese football schedule questions such as "toi nay Viet Nam da may gio",
-  assume the user means the Vietnam national team and Vietnam time (GMT+7) unless they specify a club or league.
 - If you already called a tool and the result contains a plausible direct answer, answer from that result
   instead of asking a clarifying question.
 - If a tool returns an error, explain that specific limitation to the user and suggest a narrower retry;
   do not pretend the tool was not called or say you will check later.
-- Call web_search at most once per user message. Use the result you get; do not keep refining
-  search queries in the same turn.
-- When the user says "hom nay", "toi nay", "today", or "tonight", include the exact date in the web search query.
 - For create_vocabulary_item, provide complete useful fields yourself when possible: translation, definition,
   part of speech, phonetic transcription, one natural English sentence, and Vietnamese sentence translation.
 - For update_vocabulary_item, fill blank fields by default. Only overwrite existing non-empty fields when the
@@ -114,7 +137,6 @@ Privacy and guardrails:
   If the target is vague, search first and ask a short clarifying question.
 """.strip()
 
-MAX_TOOL_TEXT = 3500
 TOOL_RESULT_LOG_LIMIT = 1200
 logger = logging.getLogger("uvicorn.error")
 
@@ -232,8 +254,6 @@ class WodyService:
         return WodyExecuteActionResponse(ok=False, message="Action này chưa được hỗ trợ.")
 
     def _build_tools(self, user_id: UUID):
-        web_cached_result: str | None = None
-
         @tool
         async def search_saved_words(query: str = "", source_type: str = "all", limit: int = 8) -> str:
             """Search the current user's saved vocabulary by word, meaning, sentence, or source title."""
@@ -558,6 +578,11 @@ class WodyService:
                 user_id,
                 {"topic": topic, "source_url": source_url, "title": title, "limit": limit},
             )
+            safety_issue = _article_safety_issue(topic, title)
+            if safety_issue:
+                output = _unsafe_article_result("search", safety_issue)
+                _log_tool_end("search_article_sources", user_id, started, output)
+                return output
             if not settings.tavily_api_key:
                 output = _json(
                     {
@@ -616,6 +641,7 @@ class WodyService:
 
             sources: list[dict[str, Any]] = []
             errors: list[str] = []
+            blocked_sources = 0
             for candidate in candidates[: _clamp(limit, 1, 3)]:
                 candidate_url = _extract_url(str(candidate.get("url") or ""))
                 if not candidate_url:
@@ -642,12 +668,25 @@ class WodyService:
                     score=candidate.get("score"),
                     published_date=str(candidate.get("published_date") or ""),
                 )
+                source_safety_issue = _article_safety_issue(
+                    source["title"],
+                    source["snippet"],
+                    source["raw_content"],
+                )
+                if source_safety_issue:
+                    blocked_sources += 1
+                    errors.append(f"{candidate_url}: blocked by article safety")
+                    continue
                 if len(source["raw_content"].split()) >= 80:
                     sources.append(source)
                     continue
                 errors.append(f"{candidate_url}: not enough readable text")
 
             if not sources:
+                if blocked_sources:
+                    output = _unsafe_article_result("source", "unsafe_source")
+                    _log_tool_end("search_article_sources", user_id, started, output)
+                    return output
                 output = _json(
                     {
                         "found": False,
@@ -696,6 +735,11 @@ class WodyService:
             cleaned_title = _clean_article_title(title or source_title) or "Untitled article"
             cleaned_content = str(content or "").strip()
             source = _extract_url(source_url)
+            safety_issue = _article_safety_issue(cleaned_title, source_title, cleaned_content)
+            if safety_issue:
+                output = _unsafe_article_result("save", safety_issue)
+                _log_tool_end("save_article_draft", user_id, started, output)
+                return output
             if not source:
                 output = _json(
                     {
@@ -822,61 +866,6 @@ class WodyService:
             _log_tool_end("delete_library_item", user_id, started, output)
             return output
 
-        @tool
-        async def web_search(query: str, limit: int = 3) -> str:
-            """Search the public web through Tavily for current outside information."""
-            nonlocal web_cached_result
-            if web_cached_result is not None:
-                logger.info(
-                    "wody.tool.cache_hit name=web_search user_id=%s result=%s",
-                    user_id,
-                    _preview(web_cached_result, TOOL_RESULT_LOG_LIMIT),
-                )
-                return web_cached_result
-            started = _log_tool_start("web_search", user_id, {"query": query, "limit": limit})
-            if settings.tavily_api_key:
-                try:
-                    payload = await _tavily_search_json(
-                        query,
-                        max_results=_clamp(limit, 1, 5),
-                        include_answer=True,
-                        include_raw_content=False,
-                    )
-                    web_cached_result = _clip(
-                        _json(_tavily_web_search_output(payload)),
-                        MAX_TOOL_TEXT,
-                    )
-                    _log_tool_end("web_search", user_id, started, web_cached_result)
-                    return web_cached_result
-                except Exception as exc:
-                    logger.exception(
-                        "wody.tool.error name=web_search provider=tavily user_id=%s error=%s",
-                        user_id,
-                        exc,
-                    )
-                    output = _json({"error": "Tavily search failed.", "provider": "tavily"})
-                    web_cached_result = output
-                    _log_tool_end("web_search", user_id, started, output)
-                    return output
-
-            if settings.jina_api_key:
-                output = await _jina_web_search_compat(user_id=user_id, query=query, limit=limit)
-                web_cached_result = output
-                _log_tool_end("web_search", user_id, started, output)
-                return output
-
-            output = _json(
-                {
-                    "error": (
-                        "TAVILY_API_KEY is not configured. JINA_API_KEY is also "
-                        "unavailable as a temporary fallback."
-                    ),
-                }
-            )
-            web_cached_result = output
-            _log_tool_end("web_search", user_id, started, output)
-            return output
-
         return [
             search_saved_words,
             search_library,
@@ -887,7 +876,6 @@ class WodyService:
             save_article_draft,
             delete_vocabulary_item,
             delete_library_item,
-            web_search,
         ]
 
 
@@ -895,66 +883,6 @@ def _fetch_text(url: str, headers: dict[str, str], timeout_seconds: int) -> str:
     request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
         return response.read().decode("utf-8", errors="replace")
-
-
-async def _jina_web_search_compat(*, user_id: UUID, query: str, limit: int) -> str:
-    capped_limit = _clamp(limit, 1, 5)
-    headers = {
-        "Accept": "text/plain; charset=utf-8",
-        "Authorization": f"Bearer {settings.jina_api_key}",
-        "User-Agent": "Wordinary-Wody/0.1",
-        "X-Timeout": str(_clamp(settings.jina_timeout_seconds, 5, 120)),
-        "X-Max-Tokens": str(_clamp(settings.jina_max_tokens, 500, 8000)),
-        "X-Respond-Timing": "visible-content",
-        "X-Retain-Images": "none",
-    }
-    errors: list[str] = []
-    for attempt, search_query in enumerate(_jina_query_variants(query), start=1):
-        url = "https://s.jina.ai/" + urllib.parse.quote(search_query.strip())
-        logger.info(
-            "wody.tool.attempt name=web_search provider=jina user_id=%s attempt=%s query=%s",
-            user_id,
-            attempt,
-            _preview(search_query, 220),
-        )
-        try:
-            text = await asyncio.to_thread(
-                _fetch_text,
-                url,
-                headers,
-                _clamp(settings.jina_timeout_seconds + 5, 10, 130),
-            )
-            return _clip(
-                _json(
-                    {
-                        "provider": "jina",
-                        "fallback": True,
-                        "content": _clip(text, MAX_TOOL_TEXT // max(1, capped_limit)),
-                    }
-                ),
-                MAX_TOOL_TEXT,
-            )
-        except urllib.error.HTTPError as exc:
-            errors.append(f"HTTP {exc.code}")
-        except urllib.error.URLError as exc:
-            errors.append(f"network error: {exc.reason}")
-        except TimeoutError:
-            errors.append("timeout")
-        except Exception as exc:
-            logger.exception(
-                "wody.tool.error name=web_search provider=jina user_id=%s error=%s",
-                user_id,
-                exc,
-            )
-            errors.append("unexpected error")
-    return _json(
-        {
-            "error": "Jina fallback search failed after retries.",
-            "provider": "jina",
-            "attempts": len(_jina_query_variants(query)),
-            "details": errors[-3:],
-        }
-    )
 
 
 async def _tavily_search_json(
@@ -1170,20 +1098,6 @@ def _log_tool_end(name: str, user_id: UUID, started: float, output: str) -> None
     )
 
 
-def _jina_query_variants(query: str) -> list[str]:
-    stripped = " ".join(query.split())
-    variants = [stripped]
-    ascii_query = _strip_accents(stripped)
-    if ascii_query and ascii_query.casefold() != stripped.casefold():
-        variants.append(ascii_query)
-    return [variant for variant in variants if variant]
-
-
-def _strip_accents(value: str) -> str:
-    normalized = unicodedata.normalize("NFKD", value)
-    return "".join(ch for ch in normalized if not unicodedata.combining(ch))
-
-
 async def _find_one_vocabulary_item(
     session: AsyncSession,
     *,
@@ -1298,25 +1212,6 @@ def _library_item_summary(item: LibraryItem) -> dict[str, Any]:
         "title": item.title,
         "type": item.type,
         "source_url": item.source_url or "",
-    }
-
-
-def _tavily_web_search_output(payload: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "provider": "tavily",
-        "query": payload.get("query") or "",
-        "answer": _clip(str(payload.get("answer") or ""), 900),
-        "results": [
-            {
-                "title": _clip(str(item.get("title") or ""), 180),
-                "url": item.get("url") or "",
-                "content": _clip(str(item.get("content") or item.get("raw_content") or ""), 700),
-                "score": item.get("score"),
-                "published_date": item.get("published_date") or "",
-            }
-            for item in _tavily_search_results(payload)
-        ],
-        "usage": payload.get("usage") or {},
     }
 
 
@@ -1529,6 +1424,126 @@ def _english_article_search_query(topic: str) -> str:
     return (
         f"English article about {stripped} for reading practice "
         "-site:vi.wikipedia.org -site:vi.wiktionary.org language English"
+    )
+
+
+_ARTICLE_SAFETY_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "severe_violence",
+        (
+            r"\bmurder(?:er|ous|ed|ing)?\b",
+            r"\bhomicide\b",
+            r"\bassassinat(?:e|ed|ion)\b",
+            r"\bserial killers?\b",
+            r"\bkill(?:ed|ing)? (?:a |another |some )?(?:person|people|someone|somebody)\b",
+            r"\bmassacre\b",
+            r"\btortur(?:e|ed|ing)\b",
+            r"\bgore\b",
+            r"\bbehead(?:ed|ing)?\b",
+            r"\bdismember(?:ed|ing|ment)?\b",
+            r"\bgiet nguoi\b",
+            r"\bgiet (?:mot )?(?:nguoi|ai do)\b",
+            r"\bsat hai\b",
+            r"\bsat nhan\b",
+            r"\ban mang\b",
+            r"\bam sat\b",
+            r"\btham sat\b",
+            r"\btra tan\b",
+        ),
+    ),
+    (
+        "self_harm",
+        (
+            r"\bsuicid(?:e|al)\b",
+            r"\bself harm\b",
+            r"\bkill myself\b",
+            r"\bways? to die\b",
+            r"\btu tu\b",
+            r"\btu sat\b",
+            r"\btu hai\b",
+            r"\bcach chet\b",
+        ),
+    ),
+    (
+        "sexual_exploitation",
+        (
+            r"\brape\b",
+            r"\bsexual assault\b",
+            r"\bsexual abuse\b",
+            r"\bchild sexual\b",
+            r"\bchild pornography\b",
+            r"\bpedophil(?:e|ia|ic)\b",
+            r"\bexplicit sex\b",
+            r"\bhiep dam\b",
+            r"\bxam hai tinh duc\b",
+            r"\blam dung tinh duc\b",
+            r"\bau dam\b",
+            r"\bkhoa than\b",
+        ),
+    ),
+    (
+        "weapons",
+        (
+            r"\b(?:how to|instructions? (?:for|to)) (?:make|build|use) (?:a )?(?:bomb|weapon|gun|explosive)\b",
+            r"\bbomb making\b",
+            r"\bweapon manufacturing\b",
+            r"\bche tao (?:bom|sung|vu khi)\b",
+            r"\bcach che (?:bom|sung|vu khi)\b",
+            r"\bcach lam (?:bom|sung|vu khi)\b",
+        ),
+    ),
+    (
+        "actionable_wrongdoing",
+        (
+            r"\bhow to (?:hack|steal|shoplift|scam|kidnap)\b",
+            r"\bevade (?:the )?(?:police|law enforcement)\b",
+            r"\b(?:make|manufacture|sell) (?:meth|cocaine|illegal drugs?)\b",
+            r"\bcach (?:hack|trom|lua dao|bat coc)\b",
+            r"\btron tranh sat\b",
+            r"\bche tao ma tuy\b",
+        ),
+    ),
+    (
+        "extremist_recruitment",
+        (
+            r"\bterrorist propaganda\b",
+            r"\bextremist recruitment\b",
+            r"\bjoin (?:isis|a terrorist group)\b",
+            r"\btuyen mo khung bo\b",
+            r"\btuyen truyen khung bo\b",
+        ),
+    ),
+)
+
+
+def _article_safety_issue(*values: str) -> str | None:
+    text = _normalize_safety_text(" ".join(str(value or "") for value in values))
+    for category, patterns in _ARTICLE_SAFETY_RULES:
+        if any(re.search(pattern, text) for pattern in patterns):
+            return category
+    return None
+
+
+def _normalize_safety_text(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value).casefold()
+    without_accents = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", without_accents).split())
+
+
+def _unsafe_article_result(stage: str, category: str) -> str:
+    return _json(
+        {
+            "found": False,
+            "created": False,
+            "blocked": True,
+            "code": "unsafe_article_content",
+            "stage": stage,
+            "category": category,
+            "error": (
+                "This request is outside Wordinary's learning-safe article scope. "
+                "Respond warmly and offer one nearby non-graphic English-learning topic."
+            ),
+        }
     )
 
 
