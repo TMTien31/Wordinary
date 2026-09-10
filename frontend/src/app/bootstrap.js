@@ -2,6 +2,7 @@ function attachEvents() {
   bindVideoEvents();
   bindPdfEvents();
   bindDictationEvents();
+  bindVoiceEvents();
   document.addEventListener("error", event => {
     if (event.target instanceof HTMLImageElement) handleIconError(event.target);
   }, true);
@@ -40,6 +41,7 @@ function attachEvents() {
     else if ($("#reviewView").classList.contains("active")) renderReview();
     else if ($("#dictationView").classList.contains("active")) renderDictation();
     else if ($("#cardsView").classList.contains("active")) renderCards($("#cardSearch")?.value || "");
+    else if ($("#voiceView").classList.contains("active")) { renderVoice(); applyLanguage(); }
     else applyLanguage();
     renderSettingsProfile();
     saveState();
@@ -241,14 +243,11 @@ function init() {
   renderCards();
   renderLibraryOverview();
   initializeDictation();
+  initializeVoice();
   setView("isleView");
   updateVideoSavedCount();
   ensureVideoPolling();
   if (typeof initWody === "function") initWody();
   applyLanguage();
   observeI18n();
-  if (!appSessionStorage.getItem("wordinary_seen") && !appSessionStorage.getItem("lingoleaf_seen")) {
-    setTimeout(() => showToast("Thử ngay trong bài mẫu", "Bôi đen một từ tiếng Anh để xem popup dịch theo ngữ cảnh.", "👆"), 700);
-    appSessionStorage.setItem("wordinary_seen", "1");
-  }
 }

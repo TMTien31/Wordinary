@@ -8,6 +8,7 @@
 @import "../features/vocabulary/vocabulary.css";
 @import "../features/practice/practice.css";
 @import "../features/dictation/dictation.css";
+@import "../features/voice/voice.css";
 @import "../shared/ui/modal.css";
 @import "../features/video/video.css";
 @import "../styles/visual-system.css";

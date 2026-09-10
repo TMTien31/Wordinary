@@ -43,10 +43,21 @@ function dictationSourceSignature(item = getLibraryItem(dictationState.itemId)) 
   ].join(":");
 }
 
+const DICTATION_NOISE_LABEL_PATTERN = /^(?:(?:soft|loud|background|upbeat|dramatic|instrumental)\s+)*(?:music|applause|clap(?:s|ping)?|laughter|laugh(?:s|ing)?|cheer(?:s|ing)?|crowd(?: noise)?|silence|noise|sound effects?|inaudible|crosstalk|sigh(?:s|ing)?|gasp(?:s|ing)?)(?:\s+(?:plays?|playing|continues?|fades?(?:\s+(?:in|out))?|starts?|stops?))*[.!…]*$/i;
+
+function dictationStripCaptionAnnotations(value = "") {
+  return String(value)
+    .replace(/\[[^\]\r\n]{1,120}\]/g, " ")
+    .replace(/\(([^)\r\n]{1,120})\)/g, (match, label) => DICTATION_NOISE_LABEL_PATTERN.test(label.trim()) ? " " : match)
+    .replace(/[♪♫♬]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function dictationSanitizeCue(cue = {}, index = 0) {
   const start = Math.max(0, Number(cue.start) || 0);
   const end = Math.max(Number(cue.end) || start + 0.1, start + 0.1);
-  let text = dictationCleanText(cue.text || "");
+  let text = dictationStripCaptionAnnotations(dictationCleanText(cue.text || ""));
   const boundaryBefore = /^(?:>>+|[-–—]\s+|[A-Z][A-Za-z .'-]{1,28}:\s+)/.test(text);
   text = text
     .replace(/^(?:>>+\s*)+/, "")
@@ -58,7 +69,7 @@ function dictationSanitizeCue(cue = {}, index = 0) {
     start,
     end,
     text,
-    translation: dictationCleanText(cue.translation || ""),
+    translation: dictationStripCaptionAnnotations(dictationCleanText(cue.translation || "")),
     boundaryBefore
   };
 }
@@ -76,8 +87,7 @@ function dictationSentenceComplete(text = "") {
 function dictationCueIsNoise(cue) {
   const text = String(cue?.text || "").trim();
   if (!text) return true;
-  if (/^\[(?:music|applause|laughter|silence|noise|sound)\]$/i.test(text)) return true;
-  if (/^\((?:music|applause|laughter|silence|noise|sound)\)$/i.test(text)) return true;
+  if (DICTATION_NOISE_LABEL_PATTERN.test(text)) return true;
   if (!/[a-z0-9]/i.test(text)) return true;
   return false;
 }
@@ -116,7 +126,7 @@ function splitDictationCueSentences(cue) {
 
 function buildDictationSegments(captions = [], length = dictationState.segmentLength) {
   const limits = dictationLengthLimits(length);
-  const cues = captions.map(dictationSanitizeCue).filter(cue => cue.text && cue.end > cue.start);
+  const cues = captions.map(dictationSanitizeCue).filter(cue => cue.end > cue.start);
   const segments = [];
   let buffer = [];
 

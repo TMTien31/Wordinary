@@ -47,11 +47,26 @@ async function translateWithMyMemory(text) {
   return cleanTranslation(value);
 }
 
+const translationCache = new Map();
+
 async function translate(text) {
+  const cacheKey = cleanTranslation(text).toLowerCase();
+  if (!cacheKey) return "";
+  if (translationCache.has(cacheKey)) return translationCache.get(cacheKey);
+
+  const request = Promise.any([
+    translateWithGoogle(text),
+    translateWithMyMemory(text)
+  ]);
+  translationCache.set(cacheKey, request);
+
   try {
-    return await translateWithGoogle(text);
-  } catch (_) {
-    return await translateWithMyMemory(text);
+    const result = await request;
+    translationCache.set(cacheKey, Promise.resolve(result));
+    return result;
+  } catch (error) {
+    translationCache.delete(cacheKey);
+    throw error;
   }
 }
 
@@ -120,9 +135,14 @@ async function searchIcons(query) {
 async function loadSelectionData() {
   const target = state.selection;
   if (!target) return;
-  const wordKey = target.word.toLowerCase();
 
   const localTranslation = contextualLocalTranslation(target.word, target.sentence);
+  if (localTranslation) {
+    target.translation = decodeHtml(localTranslation);
+    $("#popupTranslation").textContent = target.translation;
+    $("#popupDefinition").textContent = `Nghĩa đang dùng trong câu: ${target.translation}.`;
+  }
+
   const wordTranslationPromise = localTranslation
     ? Promise.resolve(localTranslation)
     : translate(target.word).catch(() => "Chưa có bản dịch");
@@ -131,25 +151,36 @@ async function loadSelectionData() {
   const visualQuery = inferVisualQuery(target.word, target.sentence, "");
   const iconsPromise = searchIcons(visualQuery);
 
-  const [translation, sentenceTranslation, dict, icons] = await Promise.all([
-    wordTranslationPromise,
-    sentenceTranslationPromise,
-    dictionaryPromise,
-    iconsPromise
-  ]);
-  if (state.selection !== target) return;
-  target.translation = decodeHtml(translation);
-  target.sentenceTranslation = decodeHtml(sentenceTranslation);
-  target.definition = dict?.definition || `Nghĩa đang dùng trong câu: ${target.translation}.`;
-  target.phonetic = dict?.phonetic || "";
-  target.partOfSpeech = dict?.partOfSpeech || "";
-  target.icons = icons;
-  target.selectedIcon = icons[0] || ICON_FALLBACKS.default[0];
+  const wordJob = wordTranslationPromise.then(translation => {
+    if (state.selection !== target) return;
+    target.translation = decodeHtml(translation);
+    $("#popupTranslation").textContent = `${target.translation}${target.phonetic ? `  ·  ${target.phonetic}` : ""}`;
+    if (!target.definition) $("#popupDefinition").textContent = `Nghĩa đang dùng trong câu: ${target.translation}.`;
+  });
 
-  $("#popupTranslation").textContent = `${target.translation}${target.phonetic ? `  ·  ${target.phonetic}` : ""}`;
-  $("#popupDefinition").textContent = `${target.partOfSpeech ? target.partOfSpeech + " · " : ""}${target.definition}`;
-  $("#popupSentenceTranslation").textContent = target.sentenceTranslation;
-  renderIconOptions(target);
+  const sentenceJob = sentenceTranslationPromise.then(sentenceTranslation => {
+    if (state.selection !== target) return;
+    target.sentenceTranslation = decodeHtml(sentenceTranslation);
+    $("#popupSentenceTranslation").textContent = target.sentenceTranslation;
+  });
+
+  const dictionaryJob = dictionaryPromise.then(dict => {
+    if (state.selection !== target) return;
+    target.definition = dict?.definition || `Nghĩa đang dùng trong câu: ${target.translation || target.word}.`;
+    target.phonetic = dict?.phonetic || "";
+    target.partOfSpeech = dict?.partOfSpeech || "";
+    if (target.translation) $("#popupTranslation").textContent = `${target.translation}${target.phonetic ? `  ·  ${target.phonetic}` : ""}`;
+    $("#popupDefinition").textContent = `${target.partOfSpeech ? target.partOfSpeech + " · " : ""}${target.definition}`;
+  });
+
+  const iconsJob = iconsPromise.then(icons => {
+    if (state.selection !== target) return;
+    target.icons = icons;
+    target.selectedIcon = icons[0] || ICON_FALLBACKS.default[0];
+    renderIconOptions(target);
+  });
+
+  await Promise.allSettled([wordJob, sentenceJob, dictionaryJob, iconsJob]);
 }
 
 function decodeHtml(value = "") {

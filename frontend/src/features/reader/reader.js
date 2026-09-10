@@ -295,8 +295,8 @@ function toggleReaderWordHighlight(word = "") {
 function setView(viewId, options = {}) {
   $$(".view").forEach(v => v.classList.toggle("active", v.id === viewId));
   $$(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.view === viewId));
-  const namesVi = { isleView: "Đảo của bạn", libraryView: "Thư viện", cardsView: "Từ vựng", reviewView: "Luyện tập", readerView: "Đọc", pdfView: "PDF", videoView: "Video", dictationView: "Chép chính tả", settingsView: "Cài đặt" };
-  const namesEn = { isleView: "Your Isle", libraryView: "Library", cardsView: "Vocabulary", reviewView: "Practice", readerView: "Read", pdfView: "PDF", videoView: "Video", dictationView: "Dictation", settingsView: "Settings" };
+  const namesVi = { isleView: "Đảo của bạn", libraryView: "Thư viện", cardsView: "Từ vựng", reviewView: "Luyện tập", readerView: "Đọc", pdfView: "PDF", videoView: "Video", dictationView: "Chép chính tả", voiceView: "Luyện nói", settingsView: "Cài đặt" };
+  const namesEn = { isleView: "Your Isle", libraryView: "Library", cardsView: "Vocabulary", reviewView: "Practice", readerView: "Read", pdfView: "PDF", videoView: "Video", dictationView: "Dictation", voiceView: "Voice", settingsView: "Settings" };
   $("#crumbName").textContent = (state.language === "en" ? namesEn : namesVi)[viewId];
   $("#sidebar").classList.remove("open");
   closeSelectionPopup();
@@ -309,6 +309,7 @@ function setView(viewId, options = {}) {
     else renderReview();
   }
   if (viewId === "dictationView") prepareDictationView();
+  if (viewId === "voiceView") prepareVoiceView();
   if (viewId === "pdfView") { renderPdfWordRail(); if (pdfState.doc) requestAnimationFrame(() => renderPdfPage(pdfState.page)); }
   if (viewId === "videoView") { ensureVideoPolling(); updateVideoSavedCount(); }
   queueMicrotask(applyLanguage);

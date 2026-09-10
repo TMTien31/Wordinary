@@ -5,42 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0e1726" />
   <title>Wordinary</title>
-  <link rel="stylesheet" href="/src/styles/main.css?v=onboarding-1" />
+  <link rel="stylesheet" href="/src/styles/main.css?v=auth-center-1" />
 
 </head>
 <body>
   <section class="auth-screen" id="authScreen" aria-label="Wordinary authentication">
-    <div class="auth-stage">
-      <div class="auth-copy">
-        <div class="brand">
-          <div class="brand-mark wordinary-mark" aria-hidden="true"><span>W</span></div>
-          <div class="brand-copy">Wordinary<small>ordinary words, made yours</small></div>
-        </div>
-        <h1>Keep every word connected to where you found it.</h1>
-        <p>Sign in to continue your reading library, saved vocabulary, and review rhythm from one account.</p>
-      </div>
-
-      <div class="auth-preview" aria-hidden="true">
-        <div class="auth-preview-head">
-          <span>Today</span>
-          <strong>Reading room</strong>
-        </div>
-        <div class="auth-preview-article">
-          <span>Aa</span>
-          <div><b>Urban farms after rain</b><small>Article • 42% read</small></div>
-        </div>
-        <div class="auth-preview-row"><span>curiosity</span><b>saved</b></div>
-        <div class="auth-preview-row amber"><span>continue</span><b>review</b></div>
-      </div>
-      <div class="auth-benefits" aria-label="Wordinary learning modes">
-        <span>Articles</span>
-        <span>PDFs</span>
-        <span>Videos</span>
-        <span>Reviews</span>
-      </div>
-    </div>
-
     <div class="auth-card">
+      <div class="brand auth-card-brand">
+        <div class="brand-mark wordinary-mark" aria-hidden="true"><span>W</span></div>
+        <div class="brand-copy">Wordinary<small>ordinary words, made yours</small></div>
+      </div>
       <div class="auth-panel" id="authLoginPanel">
         <h2>Log in</h2>
         <p>Pick up your saved words, reading progress, and reviews.</p>
@@ -96,6 +70,7 @@
         <button class="nav-btn" data-view="pdfView"><span class="nav-icon">▧</span><span class="nav-text">PDF</span></button>
         <button class="nav-btn" data-view="videoView"><span class="nav-icon">▶</span><span class="nav-text">Video</span></button>
         <button class="nav-btn" data-view="dictationView"><span class="nav-icon">⌁</span><span class="nav-text">Dictation</span><span class="nav-count" id="navDictationCount">0</span></button>
+        <button class="nav-btn" data-view="voiceView"><span class="nav-icon">◉</span><span class="nav-text">Voice</span></button>
       </nav>
 
       <div class="sidebar-account" id="sidebarAccount">
@@ -604,6 +579,77 @@
           </div>
         </details>
       </section>
+
+      <section class="view" id="voiceView">
+        <div class="page-heading voice-heading">
+          <div>
+            <h1>Voice</h1>
+            <p>Build confidence one sentence at a time.</p>
+          </div>
+          <div class="voice-mode-tabs" role="tablist" aria-label="Voice practice mode">
+            <button class="voice-mode-tab active" type="button" role="tab" aria-selected="true" data-voice-mode="shadowing"><span aria-hidden="true">≋</span>Shadowing</button>
+            <button class="voice-mode-tab" type="button" role="tab" aria-selected="false" aria-disabled="true" data-voice-mode="conversation" title="Coming soon"><span aria-hidden="true">◌</span>Conversation <small>Locked</small></button>
+          </div>
+        </div>
+
+        <div class="voice-source-bar">
+          <label for="voiceSourceSelect"><span>Practice video</span><select id="voiceSourceSelect" aria-label="Choose a video from your library"></select></label>
+          <div class="voice-source-meta" id="voiceSourceMeta">No captioned video selected</div>
+          <button class="tool-btn" type="button" data-view="libraryView"><span aria-hidden="true">＋</span><span>Library</span></button>
+        </div>
+
+        <div class="voice-workspace">
+          <section class="voice-practice-panel" aria-labelledby="voiceSentenceLabel">
+            <div class="voice-progress-row">
+              <span id="voiceSentenceLabel">Sentence <b id="voiceSentenceIndex">0</b> of <b id="voiceSentenceTotal">0</b></span>
+              <span id="voiceAttemptCount">0 attempts</span>
+            </div>
+            <div class="voice-progress-track"><span id="voiceProgressFill"></span></div>
+
+            <div class="voice-empty" id="voiceEmptyState">
+              <span class="voice-empty-icon" aria-hidden="true">▶</span>
+              <h2>No captioned videos yet</h2>
+              <p>Add a video and captions in your Library to begin.</p>
+              <button class="tool-btn primary" type="button" data-view="libraryView"><span aria-hidden="true">＋</span><span>Open Library</span></button>
+            </div>
+
+            <div class="voice-session is-hidden" id="voiceSession">
+              <div class="voice-audio-state" id="voiceAudioState" aria-live="polite">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <blockquote class="voice-sentence" id="voiceSentence">Choose a sentence</blockquote>
+              <p class="voice-translation" id="voiceTranslation"></p>
+
+              <div class="voice-playback-controls">
+                <button class="voice-icon-button" id="voicePrevious" type="button" title="Previous sentence" aria-label="Previous sentence">←</button>
+                <button class="voice-listen-button" id="voiceListen" type="button"><span aria-hidden="true">▶</span><span>Listen</span></button>
+                <label class="voice-speed"><span>Speed</span><select id="voiceSpeed" aria-label="Playback speed"><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option></select></label>
+                <button class="voice-icon-button" id="voiceNext" type="button" title="Next sentence" aria-label="Next sentence">→</button>
+              </div>
+
+              <div class="voice-recording-dock">
+                <button class="voice-record-button" id="voiceRecord" type="button" aria-label="Start recording" title="Start recording"><span aria-hidden="true"></span></button>
+                <div class="voice-record-copy"><strong id="voiceRecordStatus">Ready</strong><small id="voiceRecordTimer">00:00</small></div>
+                <button class="voice-play-attempt" id="voicePlayAttempt" type="button" disabled><span aria-hidden="true">▶</span><span>My voice</span></button>
+              </div>
+
+              <div class="voice-result" id="voiceResult" aria-live="polite">
+                <div class="voice-result-empty" id="voiceResultEmpty">No attempt yet</div>
+                <div class="voice-result-content is-hidden" id="voiceResultContent">
+                  <div class="voice-score"><strong id="voiceScore">0</strong><span>speech match</span></div>
+                  <div class="voice-feedback"><strong id="voiceFeedbackTitle">Keep going</strong><p id="voiceTranscript"></p><div class="voice-word-feedback" id="voiceWordFeedback"></div></div>
+                  <button class="voice-next-button" id="voiceResultNext" type="button">Next sentence <span aria-hidden="true">→</span></button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="voice-queue-panel">
+            <div class="voice-queue-head"><div><span>Session</span><h2 id="voiceSourceTitle">No video selected</h2></div><strong id="voiceCompletedCount">0/0</strong></div>
+            <div class="voice-queue" id="voiceQueue"></div>
+          </aside>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -764,10 +810,10 @@
   <script defer src="/src/core/persistence.js?v=reader-highlight-1"></script>
   <script defer src="/src/shared/ui/ui.js?v=profile-menu-1"></script>
   <script defer src="/src/features/isle/isle.js?v=isle-2"></script>
-  <script defer src="/src/features/reader/reader.js?v=onboarding-1"></script>
+  <script defer src="/src/features/reader/reader.js?v=voice-mvp-1"></script>
   <script defer src="/src/features/auth/auth.js?v=onboarding-1"></script>
   <script defer src="/src/features/onboarding/onboarding.js?v=onboarding-1"></script>
-  <script defer src="/src/infrastructure/api/learning-services.js"></script>
+  <script defer src="/src/infrastructure/api/learning-services.js?v=popup-speed-1"></script>
   <script defer src="/src/features/vocabulary/vocabulary.js?v=vocab-api-3"></script>
   <script defer src="/src/features/practice/practice.js?v=vocab-api-1"></script>
   <script defer src="/src/features/vocabulary/card-editor.js?v=vocab-api-2"></script>
@@ -776,13 +822,14 @@
   <script defer src="/src/features/video/video.js?v=app-dialog-1"></script>
   <script defer src="/src/features/video/video-events.js?v=media-clean-1"></script>
   <script defer src="/src/features/dictation/dictation-checker.js?v=dictation-polish-1"></script>
-  <script defer src="/src/features/dictation/dictation.js?v=dictation-polish-1"></script>
+  <script defer src="/src/features/dictation/dictation.js?v=caption-filter-1"></script>
+  <script defer src="/src/features/voice/voice.js?v=voice-mvp-3"></script>
   <script defer src="/src/features/pdf/pdf-state.js?v=media-clean-1"></script>
   <script defer src="/src/features/wody/wody.js?v=app-scope-1"></script>
-  <script defer src="/src/shared/i18n/translations.js?v=onboarding-1"></script>
-  <script defer src="/src/shared/i18n/i18n.js?v=profile-menu-1"></script>
+  <script defer src="/src/shared/i18n/translations.js?v=voice-mvp-1"></script>
+  <script defer src="/src/shared/i18n/i18n.js?v=voice-mvp-1"></script>
   <script defer src="/src/features/pdf/pdf.js?v=media-clean-1"></script>
-  <script defer src="/src/app/bootstrap.js?v=onboarding-1"></script>
+  <script defer src="/src/app/bootstrap.js?v=auth-center-1"></script>
   <script defer src="/src/main.js"></script>
 </body>
 </html>
